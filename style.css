@@ -4,6 +4,15 @@ body {
   font-family: Arial, sans-serif;
   background-color: var(--page-bg, #ffffff);
   color: var(--text, #000080);
+
+  --player-bg: var(--card-bg, #ffffff);
+  --player-border: var(--card-border, #cccccc);
+  --player-text: var(--text, #000080);
+  --player-sidebar-bg: var(--section-bg, #f9f9f9);
+  --player-sidebar-border: var(--card-border, #cccccc);
+  --player-control-bg: var(--section-bg, #e6f2ff);
+  --player-control-text: var(--text, #000080);
+
   margin: 0;
   padding: 0;
   font-size: 20px;
@@ -398,8 +407,10 @@ nav button {
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  background-color: white;
+  background-color: var(--player-bg, #ffffff);
+  color: var(--player-text, #000000);
   padding: 20px;
+  border: 1px solid var(--player-border, #cccccc);
   border-radius: 8px;
   max-width: 90%;
   max-height: 90vh;
@@ -424,15 +435,15 @@ nav button {
 .volume-control {
   margin: 15px 0;
   text-align: center;
-  background-color: #e6f2ff;
+  background-color: var(--player-control-bg, #e6f2ff);
   padding: 10px;
   border-radius: 8px;
-  border: 2px solid #000080;
+  border: 2px solid var(--button-bg, #000080);
 }
 
 .volume-control label {
   font-size: 24px;
-  color: #000080;
+  color: var(--player-control-text, #000080);
   margin-right: 10px;
   font-weight: bold;
 }
@@ -499,8 +510,9 @@ nav button {
   max-height: calc(90vh - 40px);
   overflow: hidden;
 
-  background-color: #f9f9f9;
-  border: 2px solid #cccccc;
+  background-color: var(--player-sidebar-bg, #f9f9f9);
+  color: var(--player-text, #000000);
+  border: 2px solid var(--player-sidebar-border, #cccccc);
   border-radius: 8px;
   padding: 16px;
 }
@@ -525,9 +537,9 @@ nav button {
 }
 
 .playlist-item {
-  background-color: #ffffff;
-  color: #000080;
-  border: 1px solid #cccccc;
+  background-color: var(--card-bg, #ffffff);
+  color: var(--text, #000080);
+  border: 1px solid var(--card-border, #cccccc);
   border-radius: 8px;
   padding: 14px;
   text-align: left;
@@ -536,7 +548,7 @@ nav button {
 }
 
 .playlist-item:hover {
-  background-color: #d9eaff;
+  background-color: var(--section-bg, #d9eaff);
 }
 
 .playlist-item.active {
@@ -553,8 +565,8 @@ nav button {
   font-size: 24px;
   padding: 15px 30px;
   margin: 0 10px;
-  background-color: #0066cc;
-  color: white;
+  background-color: var(--button-bg, #0066cc);
+  color: var(--button-text, #ffffff);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -562,12 +574,12 @@ nav button {
 }
 
 .player-controls button:hover {
-  background-color: #004d99;
+  background-color: var(--button-hover, #004d99);
 }
 
 .player-controls button.active {
-  background-color: #ff6b6b; /* Highlight active */
-  color: white;
+  background-color: var(--button-hover, #004d99);
+  color: var(--button-text, #ffffff);
 }
 
 /* Responsive */
