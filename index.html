@@ -61,9 +61,9 @@
                     <label for="volume-slider">Lautstärke:</label>
                     <input type="range" id="volume-slider" min="0" max="100" value="5" step="1">
                 </div>
-                <div class="player-controls">
-                    <button id="single-btn" onclick="toggleSingleVideo()" aria-label="Nur dieses Video wiederholen">Dieses Video</button>
+                <div class="player-controls toggle-group">
                     <button id="playlist-btn" onclick="togglePlaylist()" aria-label="Zurück zur Playlist">Playlist</button>
+                    <button id="single-btn" onclick="toggleSingleVideo()" aria-label="Nur dieses Video wiederholen">Dieses Video</button>
                     <button id="fav-btn" onclick="toggleFavoriteCurrent()" aria-label="Als Favorit speichern">Als Favorit speichern</button>
                     <button onclick="closePlayer()" aria-label="Player schließen">Schließen</button>
                 </div>

@@ -470,7 +470,17 @@ nav button {
   margin-top: 20px;
 }
 
-.player-sidebar h3 {
+.toggle-group button:nth-child(1),
+.toggle-group button:nth-child(2) {
+  border: 2px solid var(--button-bg, #0066cc);
+  border-radius: 6px;
+  margin-right: 10px;
+}
+
+.toggle-group button:nth-child(1).active,
+.toggle-group button:nth-child(2).active {
+  background-color: var(--button-hover, #004d99);
+}
   font-size: 26px;
   margin-top: 0;
   color: #000080;
