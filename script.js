@@ -7,7 +7,6 @@ let currentPlaylistTitle = '';
 let currentVideoId = null;
 let videoTitleCache = {};
 let playlistTitleCache = {};
-let playlistMenuRequestId = 0;
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -163,59 +162,47 @@ function playPlaylistVideoAt(index) {
   updateFavoriteButton();
 }
 
-// Ensure the playlist menu updates correctly when switching playlists
-async function refreshPlaylistMenuWhenReady(expectedListId, previousPlaylistIds = []) {
-  const requestId = ++playlistMenuRequestId;
+async function updatePlaylistMenu() {
   const sidebar = document.getElementById('playlist-sidebar');
-
-  if (sidebar) {
-    sidebar.innerHTML = `
-      <h3>${currentPlaylistTitle || 'Playlist-Videos'}</h3>
-      <p>Playlist wird geladen...</p>
-    `;
+  if (!sidebar) {
+    return;
   }
 
-  const previousSignature = Array.isArray(previousPlaylistIds)
-    ? previousPlaylistIds.join('|')
-    : '';
-
-  // YouTube often needs a moment before getPlaylist() contains the NEW playlist.
-  for (let attempt = 0; attempt < 20; attempt++) {
-    if (requestId !== playlistMenuRequestId) {
-      return;
-    }
-
-    if (currentListId !== expectedListId) {
-      return;
-    }
-
-    if (player && typeof player.getPlaylist === 'function') {
-      const playlistIds = player.getPlaylist();
-      const currentSignature = Array.isArray(playlistIds)
-        ? playlistIds.join('|')
-        : '';
-      const hasPlaylist = playlistIds && playlistIds.length > 0;
-      const playlistChanged = currentSignature && currentSignature !== previousSignature;
-      const firstPlaylistLoad = !previousSignature && hasPlaylist;
-
-      if (firstPlaylistLoad || playlistChanged) {
-        await updatePlaylistMenu();
-        return;
-      }
-
-      // Fallback: if after 10 attempts (3 seconds) we have a playlist, update anyway
-      if (attempt >= 10 && hasPlaylist) {
-        await updatePlaylistMenu();
-        return;
-      }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 300));
+  if (!currentListId || !player || typeof player.getPlaylist !== 'function') {
+    sidebar.innerHTML = '<h3>Playlist-Videos</h3><p>Hier werden die anderen Videos der aktuellen Playlist angezeigt.</p>';
+    return;
   }
 
-  // Last fallback after waiting.
-  if (requestId === playlistMenuRequestId && currentListId === expectedListId) {
-    await updatePlaylistMenu();
+  const playlistIds = player.getPlaylist();
+  const currentIndex = player.getPlaylistIndex();
+  const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
+
+  if (!playlistIds || playlistIds.length === 0) {
+    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Die Playlist wird geladen oder enthält keine Videos.</p>`;
+    return;
+  }
+
+  const listHtmlParts = [`<h3>${playlistLabel}</h3>`, '<div class="playlist-items">'];
+  playlistIds.forEach((videoId, index) => {
+    const title = videoTitleCache[videoId] || `Video ${index + 1}`;
+    const activeClass = index === currentIndex ? ' active' : '';
+    listHtmlParts.push(`
+      <button class="playlist-item${activeClass}" onclick="playPlaylistVideoAt(${index})" data-video-id="${videoId}">
+        ${title}
+      </button>
+    `);
+  });
+  listHtmlParts.push('</div>');
+  sidebar.innerHTML = listHtmlParts.join('');
+
+  for (const videoId of playlistIds) {
+    if (!videoTitleCache[videoId]) {
+      const title = await fetchVideoTitle(videoId);
+      const button = sidebar.querySelector(`button[data-video-id="${videoId}"]`);
+      if (button) {
+        button.textContent = title;
+      }
+    }
   }
 }
 
@@ -226,11 +213,6 @@ async function setCurrentPlaylistTitleById(listId) {
 
 // Play playlist
 async function playPlaylist(listId) {
-  const previousPlaylistIds =
-    player && typeof player.getPlaylist === 'function'
-      ? player.getPlaylist() || []
-      : [];
-
   currentListId = listId;
   await setCurrentPlaylistTitleById(listId);
   isLoop = false;
@@ -239,29 +221,10 @@ async function playPlaylist(listId) {
   const playerSection = document.getElementById('player-section');
   playerSection.style.display = 'flex';
 
-  const sidebar = document.getElementById('playlist-sidebar');
-  if (sidebar) {
-    sidebar.innerHTML = `
-      <h3>${currentPlaylistTitle || 'Playlist-Videos'}</h3>
-      <p>Playlist wird geladen...</p>
-    `;
-  }
-
   if (player) {
-    player.loadPlaylist({
-      list: listId,
-      listType: 'playlist',
-      index: 0,
-      startSeconds: 0,
-      autoplay: 1
-    });
-
-    const volumeSlider = document.getElementById('volume-slider');
-    if (volumeSlider) {
-      player.setVolume(parseInt(volumeSlider.value));
-    }
-
-    await refreshPlaylistMenuWhenReady(listId, previousPlaylistIds);
+    player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
+    player.setVolume(parseInt(document.getElementById('volume-slider').value));
+    updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
       height: '400',
@@ -276,10 +239,7 @@ async function playPlaylist(listId) {
         onReady: onPlayerReady
       }
     });
-    // For the first playlist, wait a bit for the player to load, then refresh the menu
-    setTimeout(() => refreshPlaylistMenuWhenReady(listId, previousPlaylistIds), 1500);
   }
-
   updateToggleButtons();
 }
 
@@ -321,7 +281,8 @@ function playVideo(videoId) {
 
 // Player ready
 function onPlayerReady(event) {
-  player.setVolume(5);
+  // Player is ready
+  player.setVolume(5); // Set initial volume to 5%
 
   const volumeSlider = document.getElementById('volume-slider');
   if (volumeSlider) {
@@ -330,10 +291,6 @@ function onPlayerReady(event) {
         player.setVolume(parseInt(e.target.value));
       }
     });
-  }
-
-  if (currentListId) {
-    refreshPlaylistMenuWhenReady(currentListId);
   }
 }
 
@@ -344,14 +301,10 @@ function onPlayerStateChange(event) {
       player.playVideo();
     }
   }
-
   if (event.data == YT.PlayerState.PLAYING) {
     currentVideoId = player.getVideoData().video_id;
     updateFavoriteButton();
-
-    if (currentListId) {
-      updatePlaylistMenu();
-    }
+    updatePlaylistMenu();
   }
 }
 
@@ -370,26 +323,12 @@ function toggleSingleVideo() {
 }
 
 // Toggle to playlist
-async function togglePlaylist() {
+function togglePlaylist() {
   isLoop = false;
-
   if (currentListId && player) {
-    const previousPlaylistIds =
-      typeof player.getPlaylist === 'function'
-        ? player.getPlaylist() || []
-        : [];
-
-    player.loadPlaylist({
-      list: currentListId,
-      listType: 'playlist',
-      index: 0,
-      startSeconds: 0,
-      autoplay: 1
-    });
-
-    await refreshPlaylistMenuWhenReady(currentListId, previousPlaylistIds);
+    player.loadPlaylist({list: currentListId, listType: 'playlist'});
+    updatePlaylistMenu();
   }
-
   updateToggleButtons();
 }
 
@@ -405,14 +344,10 @@ function updateToggleButtons() {
 
 // Close player
 function closePlayer() {
-  playlistMenuRequestId++;
-
   const playerSection = document.getElementById('player-section');
-
   if (player) {
     player.stopVideo();
   }
-
   playerSection.style.display = 'none';
 }
 
