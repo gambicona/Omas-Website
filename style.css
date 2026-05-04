@@ -481,6 +481,7 @@ nav button {
   flex-direction: column;
   gap: 10px;
   margin-top: 10px;
+  overflow-y: auto;
 }
 
 /* Right playlist box inside the video player */
