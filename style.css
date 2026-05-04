@@ -481,10 +481,6 @@ nav button {
 .toggle-group button:nth-child(2).active {
   background-color: var(--button-hover, #004d99);
 }
-  font-size: 26px;
-  margin-top: 0;
-  color: #000080;
-}
 
 .playlist-items {
   display: flex;
