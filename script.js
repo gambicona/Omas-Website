@@ -207,7 +207,7 @@ async function updatePlaylistMenu() {
   }
 }
 
-async function refreshPlaylistMenuWhenReady(expectedListId) {
+async function refreshPlaylistMenuWhenReady(expectedListId, previousPlaylistIds = []) {
   const requestId = ++playlistMenuRequestId;
   const sidebar = document.getElementById('playlist-sidebar');
 
@@ -218,8 +218,12 @@ async function refreshPlaylistMenuWhenReady(expectedListId) {
     `;
   }
 
-  // YouTube needs a moment before getPlaylist() contains the new playlist.
-  for (let attempt = 0; attempt < 10; attempt++) {
+  const previousSignature = Array.isArray(previousPlaylistIds)
+    ? previousPlaylistIds.join('|')
+    : '';
+
+  // YouTube often needs a moment before getPlaylist() contains the NEW playlist.
+  for (let attempt = 0; attempt < 20; attempt++) {
     if (requestId !== playlistMenuRequestId) {
       return;
     }
@@ -230,8 +234,15 @@ async function refreshPlaylistMenuWhenReady(expectedListId) {
 
     if (player && typeof player.getPlaylist === 'function') {
       const playlistIds = player.getPlaylist();
+      const currentSignature = Array.isArray(playlistIds)
+        ? playlistIds.join('|')
+        : '';
 
-      if (playlistIds && playlistIds.length > 0) {
+      const hasPlaylist = playlistIds && playlistIds.length > 0;
+      const playlistChanged = currentSignature && currentSignature !== previousSignature;
+      const firstPlaylistLoad = !previousSignature && hasPlaylist;
+
+      if (firstPlaylistLoad || playlistChanged) {
         await updatePlaylistMenu();
         return;
       }
@@ -240,7 +251,7 @@ async function refreshPlaylistMenuWhenReady(expectedListId) {
     await new Promise(resolve => setTimeout(resolve, 300));
   }
 
-  // Final attempt, even if YouTube was slow.
+  // Last fallback after waiting.
   if (requestId === playlistMenuRequestId && currentListId === expectedListId) {
     await updatePlaylistMenu();
   }
@@ -253,6 +264,11 @@ async function setCurrentPlaylistTitleById(listId) {
 
 // Play playlist
 async function playPlaylist(listId) {
+  const previousPlaylistIds =
+    player && typeof player.getPlaylist === 'function'
+      ? player.getPlaylist() || []
+      : [];
+
   currentListId = listId;
   await setCurrentPlaylistTitleById(listId);
   isLoop = false;
@@ -261,19 +277,30 @@ async function playPlaylist(listId) {
   const playerSection = document.getElementById('player-section');
   playerSection.style.display = 'flex';
 
+  const sidebar = document.getElementById('playlist-sidebar');
+  if (sidebar) {
+    sidebar.innerHTML = `
+      <h3>${currentPlaylistTitle || 'Playlist-Videos'}</h3>
+      <p>Playlist wird geladen...</p>
+    `;
+  }
+
   if (player) {
-  player.loadPlaylist({
-    list: listId,
-    listType: 'playlist',
-    index: 0,
-    startSeconds: 0,
-    autoplay: 1
-  });
+    player.loadPlaylist({
+      list: listId,
+      listType: 'playlist',
+      index: 0,
+      startSeconds: 0,
+      autoplay: 1
+    });
 
-  player.setVolume(parseInt(document.getElementById('volume-slider').value));
+    const volumeSlider = document.getElementById('volume-slider');
+    if (volumeSlider) {
+      player.setVolume(parseInt(volumeSlider.value));
+    }
 
-  await refreshPlaylistMenuWhenReady(listId);
-} else {
+    await refreshPlaylistMenuWhenReady(listId, previousPlaylistIds);
+  } else {
     player = new YT.Player('video-iframe', {
       height: '400',
       width: '100%',
@@ -288,6 +315,7 @@ async function playPlaylist(listId) {
       }
     });
   }
+
   updateToggleButtons();
 }
 
@@ -352,12 +380,14 @@ function onPlayerStateChange(event) {
       player.playVideo();
     }
   }
+
   if (event.data == YT.PlayerState.PLAYING) {
     currentVideoId = player.getVideoData().video_id;
     updateFavoriteButton();
+
     if (currentListId) {
-  refreshPlaylistMenuWhenReady(currentListId);
-}
+      updatePlaylistMenu();
+    }
   }
 }
 
@@ -376,12 +406,26 @@ function toggleSingleVideo() {
 }
 
 // Toggle to playlist
-function togglePlaylist() {
+async function togglePlaylist() {
   isLoop = false;
+
   if (currentListId && player) {
-    player.loadPlaylist({list: currentListId, listType: 'playlist'});
-    updatePlaylistMenu();
+    const previousPlaylistIds =
+      typeof player.getPlaylist === 'function'
+        ? player.getPlaylist() || []
+        : [];
+
+    player.loadPlaylist({
+      list: currentListId,
+      listType: 'playlist',
+      index: 0,
+      startSeconds: 0,
+      autoplay: 1
+    });
+
+    await refreshPlaylistMenuWhenReady(currentListId, previousPlaylistIds);
   }
+
   updateToggleButtons();
 }
 
