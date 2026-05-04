@@ -402,9 +402,12 @@ nav button {
   padding: 20px;
   border-radius: 8px;
   max-width: 90%;
-  max-height: 90%;
+  max-height: 90vh;
   text-align: left;
-  flex-wrap: wrap;
+
+  /* Prevent the sidebar from overflowing weirdly */
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
 .player-main {
@@ -480,6 +483,34 @@ nav button {
   margin-top: 10px;
 }
 
+/* Right playlist box inside the video player */
+.player-sidebar {
+  flex: 0 0 340px;
+  max-width: 340px;
+
+  /* Important: keep the sidebar inside the player window */
+  max-height: calc(90vh - 40px);
+  overflow: hidden;
+
+  background-color: #f9f9f9;
+  border: 2px solid #cccccc;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* The actual list of playlist videos should scroll */
+.playlist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+
+  /* Important part */
+  max-height: calc(90vh - 150px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
 .playlist-item {
   background-color: #ffffff;
   color: #000080;
@@ -530,10 +561,18 @@ nav button {
 @media (max-width: 1024px) {
   .player-container {
     flex-direction: column;
+    overflow-y: auto;
   }
+
   .player-sidebar {
     width: 100%;
-    max-height: none;
+    max-width: none;
+    max-height: 35vh;
+  }
+
+  .playlist-items {
+    max-height: 25vh;
+    overflow-y: auto;
   }
 }
 
