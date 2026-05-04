@@ -1,10 +1,10 @@
 // script.js
 
-// Load videos from videos.js
-// Assuming videos.js is loaded before this script
-
-let currentVideoIndex = -1;
-let currentSection = 'all'; // 'all', 'favorites', 'games'
+let currentSection = 'playlists'; // default to playlists
+let player;
+let currentListId = null;
+let isLoop = false;
+let currentVideoId = null;
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -17,21 +17,68 @@ function saveFavorites(favs) {
   localStorage.setItem('omasVideosFavorites', JSON.stringify(favs));
 }
 
-// Toggle favorite
-function toggleFavorite(videoId) {
+// Toggle favorite for current video
+function toggleFavoriteCurrent() {
+  if (!currentVideoId) return;
   let favs = loadFavorites();
-  if (favs.includes(videoId)) {
-    favs = favs.filter(id => id !== videoId);
+  const existing = favs.find(f => f.id === currentVideoId);
+  if (existing) {
+    favs = favs.filter(f => f.id !== currentVideoId);
   } else {
-    favs.push(videoId);
+    const data = player.getVideoData();
+    favs.push({
+      id: data.video_id,
+      title: data.title,
+      thumbnail: `https://img.youtube.com/vi/${data.video_id}/hqdefault.jpg`
+    });
   }
   saveFavorites(favs);
-  renderVideos();
+  updateFavoriteButton();
+  if (currentSection === 'favorites') {
+    renderFavorites();
+  }
 }
 
-// Check if video is favorite
-function isFavorite(videoId) {
-  return loadFavorites().includes(videoId);
+// Check if current video is favorite
+function isCurrentFavorite() {
+  const favs = loadFavorites();
+  return favs.some(f => f.id === currentVideoId);
+}
+
+// Update favorite button
+function updateFavoriteButton() {
+  const btn = document.getElementById('fav-btn');
+  if (btn) {
+    const isFav = isCurrentFavorite();
+    btn.textContent = isFav ? 'Aus Favoriten entfernen' : 'Als Favorit speichern';
+    btn.classList.toggle('favorited', isFav);
+  }
+}
+
+// Render favorites
+function renderFavorites() {
+  const container = document.getElementById('favorites-list');
+  container.innerHTML = '';
+
+  const favs = loadFavorites();
+  if (favs.length === 0) {
+    container.innerHTML = '<p>Sie haben noch keine Favoriten gespeichert.</p>';
+    return;
+  }
+
+  favs.forEach(video => {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+
+    card.innerHTML = `
+      <img src="${video.thumbnail}" alt="${video.title} Thumbnail">
+      <h3>${video.title}</h3>
+      <button class="play-btn" onclick="playVideo('${video.id}')" aria-label="Video abspielen">Abspielen</button>
+      <button class="fav-btn favorited" onclick="toggleFavorite('${video.id}')" aria-label="Aus Favoriten entfernen">Aus Favoriten entfernen</button>
+    `;
+
+    container.appendChild(card);
+  });
 }
 
 // Render playlists
@@ -45,7 +92,6 @@ function renderPlaylists() {
 
     card.innerHTML = `
       <h3>${playlist.title}</h3>
-      <p>${playlist.description}</p>
       <button class="play-btn" onclick="playPlaylist('${playlist.listId}')" aria-label="Playlist abspielen">Abspielen</button>
     `;
 
@@ -55,43 +101,125 @@ function renderPlaylists() {
 
 // Play playlist
 function playPlaylist(listId) {
-  const playerSection = document.getElementById('player-section');
-  const iframe = document.getElementById('video-iframe');
-  iframe.src = `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
+  currentListId = listId;
+  isLoop = false;
+  currentVideoId = null;
 
+  const playerSection = document.getElementById('player-section');
   playerSection.style.display = 'flex';
+
+  if (player) {
+    player.loadPlaylist({list: listId, listType: 'playlist'});
+  } else {
+    player = new YT.Player('video-iframe', {
+      height: '400',
+      width: '100%',
+      playerVars: {
+        list: listId,
+        listType: 'playlist',
+        autoplay: 1
+      },
+      events: {
+        onStateChange: onPlayerStateChange,
+        onReady: onPlayerReady
+      }
+    });
+  }
+  updateToggleButtons();
 }
 
 // Play video
 function playVideo(videoId) {
-  const video = videos.find(v => v.id === videoId);
+  const favs = loadFavorites();
+  const video = favs.find(v => v.id === videoId);
   if (!video) return;
 
-  currentVideoIndex = videos.findIndex(v => v.id === videoId);
+  currentListId = null;
+  isLoop = true;
+  currentVideoId = videoId;
 
   const playerSection = document.getElementById('player-section');
-  const iframe = document.getElementById('video-iframe');
-  iframe.src = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1`;
-
   playerSection.style.display = 'flex';
+
+  if (player) {
+    player.loadVideoById(videoId);
+  } else {
+    player = new YT.Player('video-iframe', {
+      height: '400',
+      width: '100%',
+      videoId: videoId,
+      playerVars: {
+        autoplay: 1,
+        loop: 1,
+        playlist: videoId
+      },
+      events: {
+        onStateChange: onPlayerStateChange,
+        onReady: onPlayerReady
+      }
+    });
+  }
+  updateToggleButtons();
+}
+
+// Player ready
+function onPlayerReady(event) {
+  // Player is ready
+}
+
+// Player state change
+function onPlayerStateChange(event) {
+  if (event.data == YT.PlayerState.ENDED) {
+    if (isLoop && currentVideoId) {
+      player.playVideo();
+    }
+  }
+  if (event.data == YT.PlayerState.PLAYING) {
+    currentVideoId = player.getVideoData().video_id;
+    updateFavoriteButton();
+  }
+}
+
+// Toggle to single video loop
+function toggleSingleVideo() {
+  isLoop = true;
+  if (currentVideoId) {
+    player.loadVideoById({
+      videoId: currentVideoId,
+      startSeconds: 0,
+      suggestedQuality: 'large'
+    });
+    player.setLoop(true);
+  }
+  updateToggleButtons();
+}
+
+// Toggle to playlist
+function togglePlaylist() {
+  isLoop = false;
+  if (currentListId) {
+    player.loadPlaylist({list: currentListId, listType: 'playlist'});
+  }
+  updateToggleButtons();
+}
+
+// Update toggle buttons
+function updateToggleButtons() {
+  const singleBtn = document.getElementById('single-btn');
+  const playlistBtn = document.getElementById('playlist-btn');
+  if (singleBtn && playlistBtn) {
+    singleBtn.classList.toggle('active', isLoop);
+    playlistBtn.classList.toggle('active', !isLoop);
+  }
 }
 
 // Close player
 function closePlayer() {
   const playerSection = document.getElementById('player-section');
-  const iframe = document.getElementById('video-iframe');
-  iframe.src = '';
-  playerSection.style.display = 'none';
-}
-
-// Next video
-function nextVideo() {
-  if (currentVideoIndex < videos.length - 1) {
-    currentVideoIndex++;
-    const nextVid = videos[currentVideoIndex];
-    const iframe = document.getElementById('video-iframe');
-    iframe.src = `https://www.youtube.com/embed/${nextVid.youtubeId}?autoplay=1`;
+  if (player) {
+    player.stopVideo();
   }
+  playerSection.style.display = 'none';
 }
 
 // Switch section
@@ -104,8 +232,8 @@ function switchSection(section) {
   document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
   document.querySelector(`nav button[onclick="switchSection('${section}')"]`).classList.add('active');
 
-  if (section === 'all' || section === 'favorites') {
-    renderVideos();
+  if (section === 'favorites') {
+    renderFavorites();
   } else if (section === 'playlists') {
     renderPlaylists();
   }
@@ -113,6 +241,10 @@ function switchSection(section) {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  renderVideos();
-  switchSection('all');
+  switchSection('playlists');
 });
+
+// YouTube API ready
+function onYouTubeIframeAPIReady() {
+  // Player will be created when needed
+}

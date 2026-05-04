@@ -8,11 +8,10 @@ Diese Website ermöglicht es, YouTube-Videos einfach anzusehen, ohne die Komplex
 
 ## Funktionen
 
-- Anzeige einer Liste von Videos
-- Abspielen von Videos in einem eingebetteten Player
-- Speichern von Favoriten im Browser (localStorage)
 - Anzeige von YouTube-Playlists (Videos werden automatisch von YouTube geladen)
-- Einfache Navigation zwischen allen Videos, Favoriten, Playlists und Spielen (Platzhalter)
+- Speichern von Favoriten im Browser (localStorage) für Videos aus Playlists
+- Wiedergabe-Modi: Playlist oder Einzelvideo-Schleife
+- Einfache Navigation zwischen Favoriten, Playlists und Spielen (Platzhalter)
 
 ## Technische Anforderungen
 
@@ -29,20 +28,11 @@ Diese Website ermöglicht es, YouTube-Videos einfach anzusehen, ohne die Komplex
 - `videos.js`: Video-Daten
 - `README.md`: Diese Datei
 
-## YouTube-Video-IDs und Playlists ersetzen
+## YouTube-Playlist-IDs ersetzen
 
-### Videos
-1. Öffnen Sie `videos.js`.
-2. Suchen Sie die `youtubeId`-Felder mit "REPLACE_WITH_YOUTUBE_ID".
-3. Ersetzen Sie diese mit Ihren YouTube-Video-IDs.
-   - Beispiel: Für https://www.youtube.com/watch?v=ABC123 ist die ID "ABC123".
-4. Aktualisieren Sie auch die `thumbnail`-URLs entsprechend.
-
-### Playlists
-1. Öffnen Sie `videos.js`.
-2. Fügen Sie neue Objekte zum `playlists`-Array hinzu.
-3. Verwenden Sie die Playlist-ID aus der URL, z.B. https://www.youtube.com/playlist?list=ABC123 -> "ABC123" für `listId`.
-4. Die Playlists erscheinen automatisch in der Website und laden Videos dynamisch von YouTube.
+Fügen Sie neue Playlists zum `playlists`-Array in `videos.js` hinzu.
+Verwenden Sie die Playlist-ID aus der URL, z.B. https://www.youtube.com/playlist?list=ABC123 -> "ABC123" für `listId`.
+Die Playlists erscheinen automatisch in der Website und laden Videos dynamisch von YouTube.
 
 ## Lokales Testen
 

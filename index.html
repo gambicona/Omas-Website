@@ -10,7 +10,6 @@
     <header>
         <h1>Omas Videos</h1>
         <nav>
-            <button onclick="switchSection('all')" aria-label="Alle Videos anzeigen">Alle Videos</button>
             <button onclick="switchSection('favorites')" aria-label="Favoriten anzeigen">Favoriten</button>
             <button onclick="switchSection('playlists')" aria-label="Playlists anzeigen">Playlists</button>
             <button onclick="switchSection('games')" aria-label="Spiele anzeigen">Spiele</button>
@@ -23,10 +22,6 @@
     </section>
 
     <main class="main-content">
-        <section id="all-section" class="section">
-            <div id="video-list" class="video-list"></div>
-        </section>
-
         <section id="favorites-section" class="section" style="display: none;">
             <div id="favorites-list" class="video-list"></div>
         </section>
@@ -47,15 +42,18 @@
 
     <div id="player-section" class="player-section">
         <div class="player-container">
-            <iframe id="video-iframe" src="" allowfullscreen></iframe>
+            <div id="video-iframe"></div>
             <div class="player-controls">
+                <button id="single-btn" onclick="toggleSingleVideo()" aria-label="Nur dieses Video wiederholen">Nur dieses Video</button>
+                <button id="playlist-btn" onclick="togglePlaylist()" aria-label="Zurück zur Playlist">Zurück zur Playlist</button>
+                <button id="fav-btn" onclick="toggleFavoriteCurrent()" aria-label="Als Favorit speichern">Als Favorit speichern</button>
                 <button onclick="closePlayer()" aria-label="Player schließen">Schließen</button>
-                <button onclick="nextVideo()" aria-label="Nächstes Video abspielen">Nächstes Video</button>
             </div>
         </div>
     </div>
 
     <script src="videos.js"></script>
     <script src="script.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>

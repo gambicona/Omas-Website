@@ -180,28 +180,9 @@ nav button:focus {
   background-color: #004d99;
 }
 
-.games-section {
-  text-align: center;
-  padding: 20px;
-}
-
-.games-section p {
-  font-size: 24px;
-}
-
-.game-card {
-  background-color: #f0f0f0;
-  border: 2px solid #cccccc;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 20px auto;
-  width: 300px;
-  opacity: 0.6;
-}
-
-.game-card h3 {
-  font-size: 28px;
-  color: #666666;
+.player-controls button.active {
+  background-color: #ff6b6b; /* Highlight active */
+  color: white;
 }
 
 /* Responsive */
