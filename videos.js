@@ -30,12 +30,10 @@ const videos = [
 const playlists = [
   {
     id: "playlist1",
-    title: "Meine erste Playlist",
     listId: "PLNpzyHo90zfvRIJlSi4YwobkK7mq5TuaO"
   },
   {
     id: "playlist2",
-    title: "Meine zweite Playlist",
     listId: "PLNpzyHo90zfuePkto6jaTDpc3HcS8MKZl"
   }
 ];

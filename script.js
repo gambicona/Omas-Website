@@ -3,8 +3,10 @@
 let currentSection = 'playlists'; // default to playlists
 let player;
 let currentListId = null;
-let isLoop = false;
+let currentPlaylistTitle = '';
 let currentVideoId = null;
+let videoTitleCache = {};
+let playlistTitleCache = {};
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -82,26 +84,130 @@ function renderFavorites() {
 }
 
 // Render playlists
-function renderPlaylists() {
+async function renderPlaylists() {
   const container = document.getElementById('playlists-list');
   container.innerHTML = '';
 
-  playlists.forEach(playlist => {
+  for (const playlist of playlists) {
     const card = document.createElement('div');
     card.className = 'video-card';
 
+    const title = await fetchPlaylistTitle(playlist.listId);
+
     card.innerHTML = `
-      <h3>${playlist.title}</h3>
-      <button class="play-btn" onclick="playPlaylist('${playlist.listId}')" aria-label="Playlist abspielen">Abspielen</button>
+      <h3>${title}</h3>
+      <button class="play-btn" onclick="(async () => await playPlaylist('${playlist.listId}'))()" aria-label="Playlist abspielen">Abspielen</button>
     `;
 
     container.appendChild(card);
+  }
+}
+
+async function fetchVideoTitle(videoId) {
+  if (videoTitleCache[videoId]) {
+    return videoTitleCache[videoId];
+  }
+
+  try {
+    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&format=json`);
+    if (!response.ok) {
+      throw new Error('Titel konnte nicht geladen werden');
+    }
+    const data = await response.json();
+    videoTitleCache[videoId] = data.title;
+    return data.title;
+  } catch (error) {
+    return `Video ${videoId}`;
+  }
+}
+
+async function fetchPlaylistTitle(listId) {
+  if (playlistTitleCache[listId]) {
+    return playlistTitleCache[listId];
+  }
+
+  try {
+    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/playlist?list=${encodeURIComponent(listId)}&format=json`);
+    if (!response.ok) {
+      throw new Error('Playlist-Titel konnte nicht geladen werden');
+    }
+    const data = await response.json();
+    playlistTitleCache[listId] = data.title;
+    return data.title;
+  } catch (error) {
+    return `Playlist ${listId}`;
+  }
+}
+
+function playPlaylistVideoAt(index) {
+  if (!player || currentListId === null) {
+    return;
+  }
+
+  const playlistIds = player.getPlaylist();
+  if (!playlistIds || playlistIds.length <= index) {
+    return;
+  }
+
+  currentVideoId = playlistIds[index];
+  isLoop = false;
+  player.playVideoAt(index);
+  updateToggleButtons();
+  updateFavoriteButton();
+}
+
+async function updatePlaylistMenu() {
+  const sidebar = document.getElementById('playlist-sidebar');
+  if (!sidebar) {
+    return;
+  }
+
+  if (!currentListId || !player || typeof player.getPlaylist !== 'function') {
+    sidebar.innerHTML = '<h3>Playlist-Videos</h3><p>Hier werden die anderen Videos der aktuellen Playlist angezeigt.</p>';
+    return;
+  }
+
+  const playlistIds = player.getPlaylist();
+  const currentIndex = player.getPlaylistIndex();
+  const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
+
+  if (!playlistIds || playlistIds.length === 0) {
+    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Die Playlist wird geladen oder enthält keine Videos.</p>`;
+    return;
+  }
+
+  const listHtmlParts = [`<h3>${playlistLabel}</h3>`, '<div class="playlist-items">'];
+  playlistIds.forEach((videoId, index) => {
+    const title = videoTitleCache[videoId] || `Video ${index + 1}`;
+    const activeClass = index === currentIndex ? ' active' : '';
+    listHtmlParts.push(`
+      <button class="playlist-item${activeClass}" onclick="playPlaylistVideoAt(${index})" data-video-id="${videoId}">
+        ${title}
+      </button>
+    `);
   });
+  listHtmlParts.push('</div>');
+  sidebar.innerHTML = listHtmlParts.join('');
+
+  for (const videoId of playlistIds) {
+    if (!videoTitleCache[videoId]) {
+      const title = await fetchVideoTitle(videoId);
+      const button = sidebar.querySelector(`button[data-video-id="${videoId}"]`);
+      if (button) {
+        button.textContent = title;
+      }
+    }
+  }
+}
+
+async function setCurrentPlaylistTitleById(listId) {
+  currentPlaylistTitle = await fetchPlaylistTitle(listId);
 }
 
 // Play playlist
-function playPlaylist(listId) {
+async function playPlaylist(listId) {
   currentListId = listId;
+  await setCurrentPlaylistTitleById(listId);
   isLoop = false;
   currentVideoId = null;
 
@@ -109,7 +215,8 @@ function playPlaylist(listId) {
   playerSection.style.display = 'flex';
 
   if (player) {
-    player.loadPlaylist({list: listId, listType: 'playlist'});
+    player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
+    updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
       height: '400',
@@ -143,6 +250,7 @@ function playVideo(videoId) {
 
   if (player) {
     player.loadVideoById(videoId);
+    updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
       height: '400',
@@ -177,6 +285,7 @@ function onPlayerStateChange(event) {
   if (event.data == YT.PlayerState.PLAYING) {
     currentVideoId = player.getVideoData().video_id;
     updateFavoriteButton();
+    updatePlaylistMenu();
   }
 }
 
@@ -197,8 +306,9 @@ function toggleSingleVideo() {
 // Toggle to playlist
 function togglePlaylist() {
   isLoop = false;
-  if (currentListId) {
+  if (currentListId && player) {
     player.loadPlaylist({list: currentListId, listType: 'playlist'});
+    updatePlaylistMenu();
   }
   updateToggleButtons();
 }
@@ -235,7 +345,7 @@ function switchSection(section) {
   if (section === 'favorites') {
     renderFavorites();
   } else if (section === 'playlists') {
-    renderPlaylists();
+    (async () => await renderPlaylists())();
   }
 }
 

@@ -16,11 +16,6 @@
         </nav>
     </header>
 
-    <section class="welcome">
-        <h2>Willkommen</h2>
-        <p>Hier können Sie ganz einfach Videos ansehen und Lieblingsvideos speichern.</p>
-    </section>
-
     <main class="main-content">
         <section id="favorites-section" class="section" style="display: none;">
             <div id="favorites-list" class="video-list"></div>
@@ -42,13 +37,19 @@
 
     <div id="player-section" class="player-section">
         <div class="player-container">
-            <div id="video-iframe"></div>
-            <div class="player-controls">
-                <button id="single-btn" onclick="toggleSingleVideo()" aria-label="Nur dieses Video wiederholen">Nur dieses Video</button>
-                <button id="playlist-btn" onclick="togglePlaylist()" aria-label="Zurück zur Playlist">Zurück zur Playlist</button>
-                <button id="fav-btn" onclick="toggleFavoriteCurrent()" aria-label="Als Favorit speichern">Als Favorit speichern</button>
-                <button onclick="closePlayer()" aria-label="Player schließen">Schließen</button>
+            <div class="player-main">
+                <div id="video-iframe"></div>
+                <div class="player-controls">
+                    <button id="single-btn" onclick="toggleSingleVideo()" aria-label="Nur dieses Video wiederholen">Nur dieses Video</button>
+                    <button id="playlist-btn" onclick="togglePlaylist()" aria-label="Zurück zur Playlist">Zurück zur Playlist</button>
+                    <button id="fav-btn" onclick="toggleFavoriteCurrent()" aria-label="Als Favorit speichern">Als Favorit speichern</button>
+                    <button onclick="closePlayer()" aria-label="Player schließen">Schließen</button>
+                </div>
             </div>
+            <aside id="playlist-sidebar" class="player-sidebar">
+                <h3>Playlist-Videos</h3>
+                <p>Hier werden die anderen Videos der aktuellen Playlist angezeigt.</p>
+            </aside>
         </div>
     </div>
 
