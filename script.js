@@ -71,12 +71,13 @@ function renderFavorites() {
   favs.forEach(video => {
     const card = document.createElement('div');
     card.className = 'video-card';
+    card.addEventListener('click', () => playVideo(video.id));
 
     card.innerHTML = `
-      <img src="${video.thumbnail}" alt="${video.title} Thumbnail">
+      <img src="${video.thumbnail}" alt="${video.title} Thumbnail" style="cursor: pointer;">
       <h3>${video.title}</h3>
-      <button class="play-btn" onclick="playVideo('${video.id}')" aria-label="Video abspielen">Abspielen</button>
-      <button class="fav-btn favorited" onclick="toggleFavorite('${video.id}')" aria-label="Aus Favoriten entfernen">Aus Favoriten entfernen</button>
+      <button class="play-btn" onclick="event.stopPropagation(); playVideo('${video.id}')" aria-label="Video abspielen">Abspielen</button>
+      <button class="fav-btn favorited" onclick="event.stopPropagation(); toggleFavorite('${video.id}')" aria-label="Aus Favoriten entfernen">Aus Favoriten entfernen</button>
     `;
 
     container.appendChild(card);
@@ -92,11 +93,15 @@ async function renderPlaylists() {
     const card = document.createElement('div');
     card.className = 'video-card';
 
-    const title = await fetchPlaylistTitle(playlist.listId);
+    const { title, thumbnail } = await fetchPlaylistTitle(playlist.listId);
 
+    const imgHtml = thumbnail ? `<img src="${thumbnail}" alt="${title} Thumbnail" onclick="(async () => await playPlaylist('${playlist.listId}'))()" style="width: 100%; height: auto; border-radius: 4px; margin-bottom: 10px; cursor: pointer;">` : '';
+
+    card.addEventListener('click', async () => await playPlaylist(playlist.listId));
     card.innerHTML = `
+      ${imgHtml}
       <h3>${title}</h3>
-      <button class="play-btn" onclick="(async () => await playPlaylist('${playlist.listId}'))()" aria-label="Playlist abspielen">Abspielen</button>
+      <button class="play-btn" onclick="event.stopPropagation(); (async () => await playPlaylist('${playlist.listId}'))()" aria-label="Playlist abspielen">Abspielen</button>
     `;
 
     container.appendChild(card);
@@ -132,10 +137,11 @@ async function fetchPlaylistTitle(listId) {
       throw new Error('Playlist-Titel konnte nicht geladen werden');
     }
     const data = await response.json();
-    playlistTitleCache[listId] = data.title;
-    return data.title;
+    const result = { title: data.title, thumbnail: data.thumbnail_url };
+    playlistTitleCache[listId] = result;
+    return result;
   } catch (error) {
-    return `Playlist ${listId}`;
+    return { title: `Playlist ${listId}`, thumbnail: null };
   }
 }
 
@@ -201,7 +207,8 @@ async function updatePlaylistMenu() {
 }
 
 async function setCurrentPlaylistTitleById(listId) {
-  currentPlaylistTitle = await fetchPlaylistTitle(listId);
+  const { title } = await fetchPlaylistTitle(listId);
+  currentPlaylistTitle = title;
 }
 
 // Play playlist
@@ -216,6 +223,7 @@ async function playPlaylist(listId) {
 
   if (player) {
     player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
+    player.setVolume(parseInt(document.getElementById('volume-slider').value));
     updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
@@ -250,6 +258,7 @@ function playVideo(videoId) {
 
   if (player) {
     player.loadVideoById(videoId);
+    player.setVolume(parseInt(document.getElementById('volume-slider').value));
     updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
@@ -273,6 +282,16 @@ function playVideo(videoId) {
 // Player ready
 function onPlayerReady(event) {
   // Player is ready
+  player.setVolume(5); // Set initial volume to 5%
+
+  const volumeSlider = document.getElementById('volume-slider');
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', (e) => {
+      if (player && typeof player.setVolume === 'function') {
+        player.setVolume(parseInt(e.target.value));
+      }
+    });
+  }
 }
 
 // Player state change
@@ -349,8 +368,99 @@ function switchSection(section) {
   }
 }
 
+function applyTheme(theme) {
+  const validThemes = ['standard', 'dark', 'bright', 'highcontrast', 'pastell', 'ocean', 'forest', 'retro'];
+  const selected = validThemes.includes(theme) ? theme : 'standard';
+  document.body.dataset.theme = selected;
+  localStorage.setItem('omasTheme', selected);
+
+  const menu = document.getElementById('theme-menu');
+  const toggle = document.getElementById('theme-toggle');
+  if (menu) {
+    menu.hidden = true;
+  }
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  if (menu) {
+    menu.querySelectorAll('button').forEach(button => {
+      button.classList.toggle('active', button.textContent.trim() === getThemeLabel(selected));
+    });
+  }
+}
+
+function getThemeLabel(theme) {
+  return {
+    standard: 'Standard Weiß',
+    dark: 'Dunkel',
+    bright: 'Hell',
+    highcontrast: 'Hoher Kontrast',
+    pastell: 'Pastell',
+    ocean: 'Ozean',
+    forest: 'Wald',
+    retro: 'Retro'
+  }[theme] || 'Standard Weiß';
+}
+
+function setTheme(theme) {
+  applyTheme(theme);
+  const menu = document.getElementById('theme-menu');
+  const toggle = document.getElementById('theme-toggle');
+  if (menu) {
+    menu.hidden = true;
+    menu.classList.remove('open');
+    menu.style.display = 'none';
+  }
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function toggleThemeMenu() {
+  const menu = document.getElementById('theme-menu');
+  const toggle = document.getElementById('theme-toggle');
+  if (!menu || !toggle) return;
+  const isOpen = menu.hidden;
+  menu.hidden = !isOpen;
+  if (menu.hidden) {
+    menu.classList.remove('open');
+    menu.style.display = 'none';
+  } else {
+    menu.classList.add('open');
+    menu.style.display = 'flex';
+  }
+  toggle.setAttribute('aria-expanded', String(!menu.hidden));
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem('omasTheme');
+  applyTheme(saved || 'standard');
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  // Create custom cursor for better visibility
+  const customCursor = document.createElement('div');
+  customCursor.id = 'custom-cursor';
+  document.body.appendChild(customCursor);
+
+  // Move custom cursor with mouse
+  document.addEventListener('mousemove', (e) => {
+    customCursor.style.left = e.clientX + 'px';
+    customCursor.style.top = e.clientY + 'px';
+  });
+
+  document.addEventListener('click', (event) => {
+    const menu = document.getElementById('theme-menu');
+    const toggle = document.getElementById('theme-toggle');
+    if (menu && toggle && !event.target.closest('.header-left')) {
+      menu.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
   switchSection('playlists');
 });
 
