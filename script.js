@@ -7,6 +7,7 @@ let currentPlaylistTitle = '';
 let currentVideoId = null;
 let videoTitleCache = {};
 let playlistTitleCache = {};
+let playlistMenuRequestId = 0;
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -206,6 +207,45 @@ async function updatePlaylistMenu() {
   }
 }
 
+async function refreshPlaylistMenuWhenReady(expectedListId) {
+  const requestId = ++playlistMenuRequestId;
+  const sidebar = document.getElementById('playlist-sidebar');
+
+  if (sidebar) {
+    sidebar.innerHTML = `
+      <h3>${currentPlaylistTitle || 'Playlist-Videos'}</h3>
+      <p>Playlist wird geladen...</p>
+    `;
+  }
+
+  // YouTube needs a moment before getPlaylist() contains the new playlist.
+  for (let attempt = 0; attempt < 10; attempt++) {
+    if (requestId !== playlistMenuRequestId) {
+      return;
+    }
+
+    if (currentListId !== expectedListId) {
+      return;
+    }
+
+    if (player && typeof player.getPlaylist === 'function') {
+      const playlistIds = player.getPlaylist();
+
+      if (playlistIds && playlistIds.length > 0) {
+        await updatePlaylistMenu();
+        return;
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+
+  // Final attempt, even if YouTube was slow.
+  if (requestId === playlistMenuRequestId && currentListId === expectedListId) {
+    await updatePlaylistMenu();
+  }
+}
+
 async function setCurrentPlaylistTitleById(listId) {
   const { title } = await fetchPlaylistTitle(listId);
   currentPlaylistTitle = title;
@@ -222,10 +262,18 @@ async function playPlaylist(listId) {
   playerSection.style.display = 'flex';
 
   if (player) {
-    player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
-    player.setVolume(parseInt(document.getElementById('volume-slider').value));
-    updatePlaylistMenu();
-  } else {
+  player.loadPlaylist({
+    list: listId,
+    listType: 'playlist',
+    index: 0,
+    startSeconds: 0,
+    autoplay: 1
+  });
+
+  player.setVolume(parseInt(document.getElementById('volume-slider').value));
+
+  await refreshPlaylistMenuWhenReady(listId);
+} else {
     player = new YT.Player('video-iframe', {
       height: '400',
       width: '100%',
@@ -281,8 +329,7 @@ function playVideo(videoId) {
 
 // Player ready
 function onPlayerReady(event) {
-  // Player is ready
-  player.setVolume(5); // Set initial volume to 5%
+  player.setVolume(5);
 
   const volumeSlider = document.getElementById('volume-slider');
   if (volumeSlider) {
@@ -291,6 +338,10 @@ function onPlayerReady(event) {
         player.setVolume(parseInt(e.target.value));
       }
     });
+  }
+
+  if (currentListId) {
+    refreshPlaylistMenuWhenReady(currentListId);
   }
 }
 
@@ -304,7 +355,9 @@ function onPlayerStateChange(event) {
   if (event.data == YT.PlayerState.PLAYING) {
     currentVideoId = player.getVideoData().video_id;
     updateFavoriteButton();
-    updatePlaylistMenu();
+    if (currentListId) {
+  refreshPlaylistMenuWhenReady(currentListId);
+}
   }
 }
 
@@ -344,10 +397,14 @@ function updateToggleButtons() {
 
 // Close player
 function closePlayer() {
+  playlistMenuRequestId++;
+
   const playerSection = document.getElementById('player-section');
+
   if (player) {
     player.stopVideo();
   }
+
   playerSection.style.display = 'none';
 }
 
