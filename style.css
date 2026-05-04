@@ -505,6 +505,12 @@ nav button {
   padding: 16px;
 }
 
+.player-sidebar p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
 /* The actual list of playlist videos should scroll */
 .playlist-items {
   display: flex;

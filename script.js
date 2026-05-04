@@ -7,6 +7,7 @@ let currentPlaylistTitle = '';
 let currentVideoId = null;
 let videoTitleCache = {};
 let playlistTitleCache = {};
+const singleLoopMessage = 'Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.';
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -168,18 +169,19 @@ async function updatePlaylistMenu() {
     return;
   }
 
+  const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
+
   if (!currentListId || !player || typeof player.getPlaylist !== 'function') {
-    const message = isLoop ? 'Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.' : 'Hier werden die anderen Videos der aktuellen Playlist angezeigt.';
-    sidebar.innerHTML = `<h3>Playlist-Videos</h3><p>${message}</p>`;
+    const message = isLoop ? singleLoopMessage : 'Hier werden die anderen Videos der aktuellen Playlist angezeigt.';
+    renderSidebarMessage(playlistLabel, message);
     return;
   }
 
   const playlistIds = player.getPlaylist();
   const currentIndex = player.getPlaylistIndex();
-  const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
 
   if (!playlistIds || playlistIds.length === 0) {
-    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.</p>`;
+    renderSidebarMessage(playlistLabel, singleLoopMessage);
     return;
   }
 
@@ -205,6 +207,17 @@ async function updatePlaylistMenu() {
       }
     }
   }
+}
+
+function renderSidebarMessage(label, message) {
+  const sidebar = document.getElementById('playlist-sidebar');
+  if (!sidebar) return;
+  sidebar.innerHTML = '';
+  const heading = document.createElement('h3');
+  heading.textContent = label;
+  const paragraph = document.createElement('p');
+  paragraph.textContent = message;
+  sidebar.append(heading, paragraph);
 }
 
 async function setCurrentPlaylistTitleById(listId) {
