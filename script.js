@@ -78,7 +78,6 @@ function renderFavorites() {
       <img src="${video.thumbnail}" alt="${video.title} Thumbnail" style="cursor: pointer;">
       <h3>${video.title}</h3>
       <button class="play-btn" onclick="event.stopPropagation(); playVideo('${video.id}')" aria-label="Video abspielen">Abspielen</button>
-      <button class="fav-btn favorited" onclick="event.stopPropagation(); toggleFavorite('${video.id}')" aria-label="Aus Favoriten entfernen">Aus Favoriten entfernen</button>
     `;
 
     container.appendChild(card);
