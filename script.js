@@ -226,6 +226,10 @@ async function playPlaylist(listId) {
     player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
     player.setVolume(parseInt(document.getElementById('volume-slider').value));
     updatePlaylistMenu();
+    const playlistBtn = document.getElementById('playlist-btn');
+    if (playlistBtn) {
+      playlistBtn.click();
+    }
   } else {
     player = new YT.Player('video-iframe', {
       height: '400',
@@ -292,6 +296,13 @@ function onPlayerReady(event) {
         player.setVolume(parseInt(e.target.value));
       }
     });
+  }
+
+  if (currentListId && !isLoop) {
+    const playlistBtn = document.getElementById('playlist-btn');
+    if (playlistBtn) {
+      playlistBtn.click();
+    }
   }
 }
 
