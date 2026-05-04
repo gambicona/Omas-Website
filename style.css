@@ -1,0 +1,220 @@
+/* style.css */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  color: #000080; /* Dark blue text */
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+header {
+  background-color: #e6f2ff; /* Soft pastel blue */
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #000080;
+}
+
+h1 {
+  font-size: 48px;
+  margin: 0;
+  color: #000080;
+}
+
+nav {
+  margin-top: 20px;
+}
+
+nav button {
+  font-size: 24px;
+  padding: 15px 30px;
+  margin: 0 10px;
+  background-color: #0066cc; /* Blue */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+nav button:hover {
+  background-color: #004d99;
+}
+
+nav button:focus {
+  outline: 3px solid #ffcc00; /* Visible focus */
+}
+
+.welcome {
+  padding: 20px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #cccccc;
+}
+
+.welcome h2 {
+  font-size: 36px;
+  color: #000080;
+}
+
+.welcome p {
+  font-size: 24px;
+}
+
+.main-content {
+  padding: 20px;
+}
+
+.video-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.video-card {
+  background-color: #ffffff;
+  border: 2px solid #cccccc;
+  border-radius: 8px;
+  padding: 20px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.video-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.video-card h3 {
+  font-size: 28px;
+  margin: 10px 0;
+}
+
+.video-card p {
+  font-size: 20px;
+  margin: 10px 0;
+}
+
+.video-card button {
+  font-size: 20px;
+  padding: 12px 24px;
+  margin: 5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.play-btn {
+  background-color: #28a745; /* Green for play */
+  color: white;
+}
+
+.play-btn:hover {
+  background-color: #218838;
+}
+
+.fav-btn {
+  background-color: #ffc107; /* Yellow for favorite */
+  color: black;
+}
+
+.fav-btn:hover {
+  background-color: #e0a800;
+}
+
+.fav-btn.favorited {
+  background-color: #ff6b6b; /* Red for favorited */
+}
+
+.player-section {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.player-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  text-align: center;
+}
+
+.player-container iframe {
+  width: 100%;
+  height: 400px;
+  border: none;
+}
+
+.player-controls {
+  margin-top: 20px;
+}
+
+.player-controls button {
+  font-size: 24px;
+  padding: 15px 30px;
+  margin: 0 10px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.player-controls button:hover {
+  background-color: #004d99;
+}
+
+.games-section {
+  text-align: center;
+  padding: 20px;
+}
+
+.games-section p {
+  font-size: 24px;
+}
+
+.game-card {
+  background-color: #f0f0f0;
+  border: 2px solid #cccccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px auto;
+  width: 300px;
+  opacity: 0.6;
+}
+
+.game-card h3 {
+  font-size: 28px;
+  color: #666666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .video-card {
+    width: 100%;
+    max-width: 300px;
+  }
+  h1 {
+    font-size: 36px;
+  }
+  nav button {
+    font-size: 20px;
+    padding: 12px 24px;
+  }
+}
