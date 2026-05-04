@@ -202,6 +202,12 @@ async function refreshPlaylistMenuWhenReady(expectedListId, previousPlaylistIds 
         await updatePlaylistMenu();
         return;
       }
+
+      // Fallback: if after 10 attempts (3 seconds) we have a playlist, update anyway
+      if (attempt >= 10 && hasPlaylist) {
+        await updatePlaylistMenu();
+        return;
+      }
     }
 
     await new Promise(resolve => setTimeout(resolve, 300));
