@@ -169,7 +169,7 @@ async function updatePlaylistMenu() {
   }
 
   if (!currentListId || !player || typeof player.getPlaylist !== 'function') {
-    const message = isLoop ? 'Sie haben Einzelwiedergabe ausgewählt.' : 'Hier werden die anderen Videos der aktuellen Playlist angezeigt.';
+    const message = isLoop ? 'Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.' : 'Hier werden die anderen Videos der aktuellen Playlist angezeigt.';
     sidebar.innerHTML = `<h3>Playlist-Videos</h3><p>${message}</p>`;
     return;
   }
