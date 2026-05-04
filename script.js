@@ -179,7 +179,7 @@ async function updatePlaylistMenu() {
   const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
 
   if (!playlistIds || playlistIds.length === 0) {
-    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Sie haben Einzelwiedergabe ausgewählt.</p>`;
+    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.</p>`;
     return;
   }
 
