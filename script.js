@@ -276,6 +276,8 @@ async function playPlaylist(listId) {
         onReady: onPlayerReady
       }
     });
+    // For the first playlist, wait a bit for the player to load, then refresh the menu
+    setTimeout(() => refreshPlaylistMenuWhenReady(listId, previousPlaylistIds), 1500);
   }
 
   updateToggleButtons();
