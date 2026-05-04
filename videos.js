@@ -54,7 +54,7 @@ const playlists = [
   },
   {
     id: "playlist7",
-    listId: "PLNpzyHo90zfvlWN-qWxuMrWKPWdnt6ZUO"
+    listId: "PLNpzyHo90zfuxgv1VxsvsmqzITYFJJ56v"
   },
   {
     id: "playlist8",
