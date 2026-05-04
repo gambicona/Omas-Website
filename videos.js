@@ -25,3 +25,22 @@ const videos = [
     thumbnail: "https://img.youtube.com/vi/REPLACE_WITH_YOUTUBE_ID/hqdefault.jpg"
   }
 ];
+
+// Playlists
+// Fügen Sie hier Ihre Playlists hinzu. Die Videos in den Playlists werden automatisch von YouTube geladen.
+// Ersetzen Sie 'LIST_ID' mit der Playlist-ID aus der URL, z.B. https://www.youtube.com/playlist?list=ABC123 -> ABC123
+
+const playlists = [
+  {
+    id: "playlist1",
+    title: "Meine erste Playlist",
+    description: "Eine Sammlung von Videos.",
+    listId: "PLNpzyHo90zfvRIJlSi4YwobkK7mq5TuaO"
+  },
+  {
+    id: "playlist2",
+    title: "Meine zweite Playlist",
+    description: "Weitere Videos.",
+    listId: "PLNpzyHo90zfuePkto6jaTDpc3HcS8MKZl"
+  }
+];

@@ -12,6 +12,7 @@
         <nav>
             <button onclick="switchSection('all')" aria-label="Alle Videos anzeigen">Alle Videos</button>
             <button onclick="switchSection('favorites')" aria-label="Favoriten anzeigen">Favoriten</button>
+            <button onclick="switchSection('playlists')" aria-label="Playlists anzeigen">Playlists</button>
             <button onclick="switchSection('games')" aria-label="Spiele anzeigen">Spiele</button>
         </nav>
     </header>
@@ -28,6 +29,10 @@
 
         <section id="favorites-section" class="section" style="display: none;">
             <div id="favorites-list" class="video-list"></div>
+        </section>
+
+        <section id="playlists-section" class="section" style="display: none;">
+            <div id="playlists-list" class="video-list"></div>
         </section>
 
         <section id="games-section" class="section" style="display: none;">

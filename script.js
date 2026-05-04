@@ -34,37 +34,32 @@ function isFavorite(videoId) {
   return loadFavorites().includes(videoId);
 }
 
-// Render video list
-function renderVideos() {
-  const container = document.getElementById('video-list');
+// Render playlists
+function renderPlaylists() {
+  const container = document.getElementById('playlists-list');
   container.innerHTML = '';
 
-  let videosToShow = videos;
-  if (currentSection === 'favorites') {
-    const favs = loadFavorites();
-    videosToShow = videos.filter(v => favs.includes(v.id));
-    if (videosToShow.length === 0) {
-      container.innerHTML = '<p>Sie haben noch keine Favoriten gespeichert.</p>';
-      return;
-    }
-  }
-
-  videosToShow.forEach(video => {
+  playlists.forEach(playlist => {
     const card = document.createElement('div');
     card.className = 'video-card';
 
     card.innerHTML = `
-      <img src="${video.thumbnail}" alt="${video.title} Thumbnail">
-      <h3>${video.title}</h3>
-      <p>${video.description}</p>
-      <button class="play-btn" onclick="playVideo('${video.id}')" aria-label="Video abspielen">Abspielen</button>
-      <button class="fav-btn ${isFavorite(video.id) ? 'favorited' : ''}" onclick="toggleFavorite('${video.id}')" aria-label="${isFavorite(video.id) ? 'Aus Favoriten entfernen' : 'Als Favorit speichern'}">
-        ${isFavorite(video.id) ? 'Aus Favoriten entfernen' : 'Als Favorit speichern'}
-      </button>
+      <h3>${playlist.title}</h3>
+      <p>${playlist.description}</p>
+      <button class="play-btn" onclick="playPlaylist('${playlist.listId}')" aria-label="Playlist abspielen">Abspielen</button>
     `;
 
     container.appendChild(card);
   });
+}
+
+// Play playlist
+function playPlaylist(listId) {
+  const playerSection = document.getElementById('player-section');
+  const iframe = document.getElementById('video-iframe');
+  iframe.src = `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
+
+  playerSection.style.display = 'flex';
 }
 
 // Play video
@@ -111,6 +106,8 @@ function switchSection(section) {
 
   if (section === 'all' || section === 'favorites') {
     renderVideos();
+  } else if (section === 'playlists') {
+    renderPlaylists();
   }
 }
 
