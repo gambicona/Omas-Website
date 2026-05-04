@@ -163,50 +163,7 @@ function playPlaylistVideoAt(index) {
   updateFavoriteButton();
 }
 
-async function updatePlaylistMenu() {
-  const sidebar = document.getElementById('playlist-sidebar');
-  if (!sidebar) {
-    return;
-  }
-
-  if (!currentListId || !player || typeof player.getPlaylist !== 'function') {
-    sidebar.innerHTML = '<h3>Playlist-Videos</h3><p>Hier werden die anderen Videos der aktuellen Playlist angezeigt.</p>';
-    return;
-  }
-
-  const playlistIds = player.getPlaylist();
-  const currentIndex = player.getPlaylistIndex();
-  const playlistLabel = currentPlaylistTitle || 'Playlist-Videos';
-
-  if (!playlistIds || playlistIds.length === 0) {
-    sidebar.innerHTML = `<h3>${playlistLabel}</h3><p>Die Playlist wird geladen oder enthält keine Videos.</p>`;
-    return;
-  }
-
-  const listHtmlParts = [`<h3>${playlistLabel}</h3>`, '<div class="playlist-items">'];
-  playlistIds.forEach((videoId, index) => {
-    const title = videoTitleCache[videoId] || `Video ${index + 1}`;
-    const activeClass = index === currentIndex ? ' active' : '';
-    listHtmlParts.push(`
-      <button class="playlist-item${activeClass}" onclick="playPlaylistVideoAt(${index})" data-video-id="${videoId}">
-        ${title}
-      </button>
-    `);
-  });
-  listHtmlParts.push('</div>');
-  sidebar.innerHTML = listHtmlParts.join('');
-
-  for (const videoId of playlistIds) {
-    if (!videoTitleCache[videoId]) {
-      const title = await fetchVideoTitle(videoId);
-      const button = sidebar.querySelector(`button[data-video-id="${videoId}"]`);
-      if (button) {
-        button.textContent = title;
-      }
-    }
-  }
-}
-
+// Ensure the playlist menu updates correctly when switching playlists
 async function refreshPlaylistMenuWhenReady(expectedListId, previousPlaylistIds = []) {
   const requestId = ++playlistMenuRequestId;
   const sidebar = document.getElementById('playlist-sidebar');
@@ -237,7 +194,6 @@ async function refreshPlaylistMenuWhenReady(expectedListId, previousPlaylistIds 
       const currentSignature = Array.isArray(playlistIds)
         ? playlistIds.join('|')
         : '';
-
       const hasPlaylist = playlistIds && playlistIds.length > 0;
       const playlistChanged = currentSignature && currentSignature !== previousSignature;
       const firstPlaylistLoad = !previousSignature && hasPlaylist;
