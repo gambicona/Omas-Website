@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omas Videos</title>
+    <title>Omas Privatwebsite</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,7 +27,8 @@
                 <nav>
                     <button onclick="switchSection('favorites')" aria-label="Favoriten anzeigen"><span class="nav-icon nav-icon-heart" aria-hidden="true">♥</span> Favoriten</button>
                     <button onclick="switchSection('playlists')" aria-label="Playlists anzeigen"><span class="nav-icon nav-icon-play" aria-hidden="true">▶</span> Playlists</button>
-                    <button onclick="switchSection('games')" aria-label="Spiele anzeigen" style="display: none;">Spiele</button>
+                    <button onclick="window.location.href='time-weather.html'" aria-label="Zeit und Wetter öffnen">Zeit und Wetter</button>
+                    <button onclick="window.location.href='games.html'" aria-label="Spiele öffnen">Spiele</button>
                 </nav>
             </div>
             <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span></div>
@@ -43,14 +44,7 @@
             <div id="playlists-list" class="video-list"></div>
         </section>
 
-        <section id="games-section" class="section" style="display: none;">
-            <div class="games-section">
-                <p>Hier kommen später kleine Spiele hin.</p>
-                <div class="game-card">
-                    <h3>Puzzle-Spiel – bald verfügbar</h3>
-                </div>
-            </div>
-        </section>
+        
     </main>
 
     <div id="player-section" class="player-section">
@@ -75,6 +69,7 @@
         </div>
     </div>
 
+    <script src="common.js"></script>
     <script src="videos.js"></script>
     <script src="script.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilder-Memory - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Bilder-Memory</h1>
+
+                <nav>
+                    <button onclick="window.location.href='games.html'" aria-label="Zurück zu den Spielen">
+                        Zurück zu den Spielen
+                    </button>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="memory-section">
+            <div class="welcome">
+                <h2>Kartenanzahl</h2>
+                <p>Wähle aus, mit wie vielen Karten gespielt werden soll.</p>
+            
+                <div class="memory-size-buttons" aria-label="Kartenanzahl auswählen">
+                    <button type="button" data-card-count="6">6</button>
+                    <button type="button" data-card-count="8">8</button>
+                    <button type="button" data-card-count="12">12</button>
+                    <button type="button" data-card-count="16">16</button>
+                    <button type="button" data-card-count="20">20</button>
+                    <button type="button" data-card-count="24">24</button>
+                </div>
+            </div>
+
+            <div class="memory-set-choice">
+                <h2>Motiv wählen</h2>
+                <p>Wähle aus, mit welchen Bildern gespielt werden soll.</p>
+
+                <div class="memory-set-buttons" aria-label="Motiv auswählen">
+                    <button type="button" data-memory-set="flowers" class="active">
+                        Blumen (Schwierig)
+                    </button>
+                    <button type="button" data-memory-set="animals">
+                        Tierkinder (Normal)
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="memory-controls">
+                <button id="memory-new-game-button" type="button" hidden>
+                    Neues Spiel
+                </button>
+            </div>
+
+            <p id="memory-status" class="memory-status" aria-live="polite">
+                Bitte eine Kartenanzahl auswählen.
+            </p>
+
+            <div id="memory-board" class="memory-board" aria-label="Memory-Spielfeld"></div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="memory.js"></script>
+</body>
+</html>

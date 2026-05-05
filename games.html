@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiele - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="standard">
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Omas Spiele</h1>
+
+                <nav>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="section">
+            
+            <div class="video-list">
+                <div class="video-card">
+                    <h3>Puzzle-Spiel</h3>
+                    <p>Bald verfügbar</p>
+                    <button disabled aria-label="Puzzle-Spiel ist bald verfügbar">
+                        Bald verfügbar
+                    </button>
+                </div>
+
+                <div class="video-card">
+                    <h3>Bilder-Memory</h3>
+                    <p>Finde zwei gleiche Karten.</p>
+                    <button onclick="window.location.href='memory.html'" aria-label="Bilder-Memory starten">
+                        Spielen
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+
+</body>
+</html>

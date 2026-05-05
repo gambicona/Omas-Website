@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeit und Wetter - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Zeit und Wetter</h1>
+
+                <nav>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+
+                    <button onclick="window.location.href='games.html'" aria-label="Zu den Spielen">
+                        Spiele
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="time-weather-page">
+            <div class="time-weather-grid">
+                <section class="time-card" aria-label="Datum und Uhrzeit">
+                    <h2>Heute</h2>
+
+                    <p id="date-display" class="date-display">
+                        Datum wird geladen...
+                    </p>
+
+                    <p id="digital-clock" class="digital-clock">
+                        --:--:--
+                    </p>
+
+                    <div class="analog-clock" aria-label="Analoge Uhr">
+                        <div class="clock-face">
+                            <div class="clock-number clock-12">12</div>
+                            <div class="clock-number clock-3">3</div>
+                            <div class="clock-number clock-6">6</div>
+                            <div class="clock-number clock-9">9</div>
+
+                            <div id="hour-hand" class="clock-hand hour-hand"></div>
+                            <div id="minute-hand" class="clock-hand minute-hand"></div>
+                            <div id="second-hand" class="clock-hand second-hand"></div>
+                            <div class="clock-center"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="weather-card" aria-label="Wettervorhersage für Kiel">
+                    <h2>Wetter in Kiel</h2>
+
+                    <div id="weather-today" class="weather-today">
+                        Wetter wird geladen...
+                    </div>
+
+                    <h3>Nächste Tage</h3>
+
+                    <div id="weather-next-days" class="weather-next-days">
+                        Bitte warten...
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="time-weather.js"></script>
+</body>
+</html>
