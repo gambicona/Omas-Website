@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Jigsaw Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      padding: 24px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 18px;
+      font-weight: bold;
+      gap: 6px;
+    }
+
+    input {
+      font-size: 18px;
+      padding: 8px;
+      width: 110px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #2869b1;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4f86;
+    }
+
+    #preview {
+      background: white;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      overflow: auto;
+    }
+
+    svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      background: #eee9e4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jigsaw Puzzle Generator</h1>
+
+  <div class="controls">
+    <label>
+      Spalten
+      <input id="colsInput" type="number" min="2" max="30" value="6">
+    </label>
+
+    <label>
+      Reihen
+      <input id="rowsInput" type="number" min="2" max="30" value="4">
+    </label>
+
+    <label>
+      Breite
+      <input id="widthInput" type="number" min="200" max="3000" value="900">
+    </label>
+
+    <label>
+      Höhe
+      <input id="heightInput" type="number" min="200" max="3000" value="600">
+    </label>
+
+    <label>
+      Zufall / Seed
+      <input id="seedInput" type="text" value="oma-puzzle-1">
+    </label>
+
+    <button onclick="generatePuzzle()">Generieren</button>
+    <button onclick="downloadSvg()">SVG herunterladen</button>
+  </div>
+
+  <div id="preview"></div>
+
+  <script>
+    const JigsawGenerator = (() => {
+      function hashStringToNumber(text) {
+        let hash = 1779033703 ^ text.length;
+
+        for (let i = 0; i < text.length; i++) {
+          hash = Math.imul(hash ^ text.charCodeAt(i), 3432918353);
+          hash = (hash << 13) | (hash >>> 19);
+        }
+
+        return hash >>> 0;
+      }
+
+      function mulberry32(seed) {
+        return function () {
+          seed |= 0;
+          seed = seed + 0x6D2B79F5 | 0;
+
+          let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+          t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+      }
+
+      function randomBetween(random, min, max) {
+        return min + random() * (max - min);
+      }
+
+      function randomSign(random) {
+        return random() < 0.5 ? -1 : 1;
+      }
+
+      function fmt(value) {
+        return Number(value.toFixed(2));
+      }
+
+      function lineTo(x, y) {
+        return `L ${fmt(x)} ${fmt(y)} `;
+      }
+
+      function createEdge(random, baseDepth) {
+        const width = randomBetween(random, 0.42, 0.62);
+        const center = randomBetween(random, 0.43, 0.57);
+        const neck = width * randomBetween(random, 0.28, 0.42);
+
+        return {
+          sign: randomSign(random),
+          center,
+          width,
+          neck,
+          depth: baseDepth * randomBetween(random, 0.75, 1.25),
+          roundness: randomBetween(random, 0.85, 1.2)
+        };
+      }
+
+      function edgeSegment(startX, startY, endX, endY, normalX, normalY, sign, edge, reverse = false) {
+        const dx = endX - startX;
+        const dy = endY - startY;
+
+        const halfWidth = edge.width / 2;
+        const halfNeck = edge.neck / 2;
+
+        const a = clamp(edge.center - halfWidth, 0.15, 0.85);
+        const b = clamp(edge.center - halfNeck, 0.15, 0.85);
+        const c = clamp(edge.center + halfNeck, 0.15, 0.85);
+        const d = clamp(edge.center + halfWidth, 0.15, 0.85);
+
+        const depth = edge.depth * sign;
+        const round = edge.roundness;
+
+        function point(tCanonical, offset) {
+          const t = reverse ? 1 - tCanonical : tCanonical;
+
+          return {
+            x: startX + dx * t + normalX * offset,
+            y: startY + dy * t + normalY * offset
+          };
+        }
+
+        function cCommand(c1, c2, p) {
+          return `C ${fmt(c1.x)} ${fmt(c1.y)}, ${fmt(c2.x)} ${fmt(c2.y)}, ${fmt(p.x)} ${fmt(p.y)} `;
+        }
+
+        function lCommand(p) {
+          return `L ${fmt(p.x)} ${fmt(p.y)} `;
+        }
+
+        if (!reverse) {
+          const pA = point(a, 0);
+          const pB = point(b, depth);
+          const pC = point(c, depth);
+          const pD = point(d, 0);
+          const pEnd = point(1, 0);
+
+          return [
+            lCommand(pA),
+
+            cCommand(
+              point(a + (b - a) * 0.45, 0),
+              point(b - (b - a) * 0.25, depth * round),
+              pB
+            ),
+
+            cCommand(
+              point(b + (c - b) * 0.25, depth * 1.35 * round),
+              point(c - (c - b) * 0.25, depth * 1.35 * round),
+              pC
+            ),
+
+            cCommand(
+              point(c + (d - c) * 0.25, depth * round),
+              point(d - (d - c) * 0.45, 0),
+              pD
+            ),
+
+            lCommand(pEnd)
+          ].join('');
+        }
+
+        const pD = point(d, 0);
+        const pC = point(c, depth);
+        const pB = point(b, depth);
+        const pA = point(a, 0);
+        const pEnd = point(0, 0);
+
+        return [
+          lCommand(pD),
+
+          cCommand(
+            point(d - (d - c) * 0.45, 0),
+            point(c + (d - c) * 0.25, depth * round),
+            pC
+          ),
+
+          cCommand(
+            point(c - (c - b) * 0.25, depth * 1.35 * round),
+            point(b + (c - b) * 0.25, depth * 1.35 * round),
+            pB
+          ),
+
+          cCommand(
+            point(b - (b - a) * 0.25, depth * round),
+            point(a + (b - a) * 0.45, 0),
+            pA
+          ),
+
+          lCommand(pEnd)
+        ].join('');
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function generate(options) {
+        const cols = options.cols || 6;
+        const rows = options.rows || 4;
+        const width = options.width || 900;
+        const height = options.height || 600;
+        const seedText = String(options.seed || 'default-seed');
+
+        const seed = hashStringToNumber(seedText);
+        const random = mulberry32(seed);
+
+        const pieceWidth = width / cols;
+        const pieceHeight = height / rows;
+        const baseDepth = Math.min(pieceWidth, pieceHeight) * 0.22;
+
+        const horizontalEdges = [];
+        const verticalEdges = [];
+
+        for (let row = 0; row < rows - 1; row++) {
+          horizontalEdges[row] = [];
+
+          for (let col = 0; col < cols; col++) {
+            horizontalEdges[row][col] = createEdge(random, baseDepth);
+          }
+        }
+
+        for (let row = 0; row < rows; row++) {
+          verticalEdges[row] = [];
+
+          for (let col = 0; col < cols - 1; col++) {
+            verticalEdges[row][col] = createEdge(random, baseDepth);
+          }
+        }
+
+        const pieces = [];
+
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            pieces.push({
+              row,
+              col,
+              id: `piece-${row}-${col}`,
+              d: createPiecePath({
+                row,
+                col,
+                rows,
+                cols,
+                pieceWidth,
+                pieceHeight,
+                horizontalEdges,
+                verticalEdges
+              })
+            });
+          }
+        }
+
+        return {
+          rows,
+          cols,
+          width,
+          height,
+          pieces,
+          toSvg(options = {}) {
+            return createSvg({
+              width,
+              height,
+              pieces,
+              stroke: options.stroke || '#222',
+              strokeWidth: options.strokeWidth || 1.5,
+              fill: options.fill || 'rgba(255,255,255,0.08)'
+            });
+          }
+        };
+      }
+
+      function createPiecePath(config) {
+        const {
+          row,
+          col,
+          rows,
+          cols,
+          pieceWidth,
+          pieceHeight,
+          horizontalEdges,
+          verticalEdges
+        } = config;
+
+        const x0 = col * pieceWidth;
+        const y0 = row * pieceHeight;
+        const x1 = x0 + pieceWidth;
+        const y1 = y0 + pieceHeight;
+
+        let d = `M ${fmt(x0)} ${fmt(y0)} `;
+
+        // Top edge
+        if (row === 0) {
+          d += lineTo(x1, y0);
+        } else {
+          const edge = horizontalEdges[row - 1][col];
+
+          d += edgeSegment(
+            x0,
+            y0,
+            x1,
+            y0,
+            0,
+            -1,
+            -edge.sign,
+            edge,
+            false
+          );
+        }
+
+        // Right edge
+        if (col === cols - 1) {
+          d += lineTo(x1, y1);
+        } else {
+          const edge = verticalEdges[row][col];
+
+          d += edgeSegment(
+            x1,
+            y0,
+            x1,
+            y1,
+            1,
+            0,
+            edge.sign,
+            edge,
+            false
+          );
+        }
+
+        // Bottom edge
+        if (row === rows - 1) {
+          d += lineTo(x0, y1);
+        } else {
+          const edge = horizontalEdges[row][col];
+
+          d += edgeSegment(
+            x1,
+            y1,
+            x0,
+            y1,
+            0,
+            1,
+            edge.sign,
+            edge,
+            true
+          );
+        }
+
+        // Left edge
+        if (col === 0) {
+          d += lineTo(x0, y0);
+        } else {
+          const edge = verticalEdges[row][col - 1];
+
+          d += edgeSegment(
+            x0,
+            y1,
+            x0,
+            y0,
+            -1,
+            0,
+            -edge.sign,
+            edge,
+            true
+          );
+        }
+
+        d += 'Z';
+
+        return d;
+      }
+
+      function createSvg({ width, height, pieces, stroke, strokeWidth, fill }) {
+        const piecePaths = pieces.map(piece => {
+          return `
+            <path
+              id="${piece.id}"
+              d="${piece.d}"
+              fill="${fill}"
+              stroke="${stroke}"
+              stroke-width="${strokeWidth}"
+              vector-effect="non-scaling-stroke"
+            />`;
+        }).join('');
+
+        return `
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 ${width} ${height}"
+            width="${width}"
+            height="${height}"
+          >
+            <rect x="0" y="0" width="${width}" height="${height}" fill="#eee9e4"/>
+            ${piecePaths}
+          </svg>
+        `;
+      }
+
+      return {
+        generate
+      };
+    })();
+
+    let currentSvg = '';
+
+    function generatePuzzle() {
+      const cols = Number(document.getElementById('colsInput').value);
+      const rows = Number(document.getElementById('rowsInput').value);
+      const width = Number(document.getElementById('widthInput').value);
+      const height = Number(document.getElementById('heightInput').value);
+      const seed = document.getElementById('seedInput').value;
+
+      const puzzle = JigsawGenerator.generate({
+        cols,
+        rows,
+        width,
+        height,
+        seed
+      });
+
+      currentSvg = puzzle.toSvg({
+        stroke: '#222',
+        strokeWidth: 1.4,
+        fill: 'rgba(255,255,255,0.05)'
+      });
+
+      document.getElementById('preview').innerHTML = currentSvg;
+    }
+
+    function downloadSvg() {
+      if (!currentSvg) {
+        generatePuzzle();
+      }
+
+      const blob = new Blob([currentSvg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'jigsaw-template.svg';
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    generatePuzzle();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Steuerung & Kontrolle: Tagessatz und Kilometersatz berechnen</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d8dee9;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --ok: #15803d;
+      --ok-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #92400e;
+      --warn-soft: #fef3c7;
+      --shadow: 0 10px 30px rgba(31, 41, 55, .08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 280px);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 20px 24px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr .8fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-card, .card {
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(216, 222, 233, .9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card { padding: 30px; }
+
+    h1, h2, h3, h4 { line-height: 1.12; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -0.04em; }
+    h2 { font-size: clamp(1.45rem, 2.5vw, 2.1rem); margin-bottom: 14px; }
+    h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    h4 { font-size: .98rem; margin-bottom: 8px; }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.08rem;
+      margin: 18px 0 0;
+      max-width: 75ch;
+    }
+
+    .exam-note {
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #bfdbfe;
+      background: var(--accent-soft);
+      color: #1e40af;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: .9rem;
+      font-weight: 650;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    section { margin-top: 24px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card { padding: 22px; }
+
+    .step {
+      position: relative;
+      border-left: 4px solid var(--accent);
+      padding: 16px 16px 16px 18px;
+      background: #fff;
+      border-radius: 14px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      margin: 12px 0;
+    }
+
+    .step-number {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .formula {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      display: block;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      line-height: 1.45;
+    }
+
+    .why-wrap { position: relative; display: inline-block; margin-left: 6px; }
+    .why-btn, button, .small-btn {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(37,99,235,.18);
+    }
+
+    .why-btn {
+      background: #111827;
+      font-size: .82rem;
+      padding: 6px 9px;
+      box-shadow: none;
+      vertical-align: middle;
+    }
+
+    .check-row {
+      padding: 7px 10px;
+      font-size: .86rem;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    button.secondary { background: #374151; }
+    button.ghost {
+      background: #ffffff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    button.danger { background: var(--bad); }
+
+    button:hover, .why-btn:hover { filter: brightness(.96); }
+
+    .why-panel {
+      position: absolute;
+      z-index: 10;
+      top: 34px;
+      right: 0;
+      width: min(340px, calc(100vw - 48px));
+      min-width: min(280px, calc(100vw - 48px));
+      max-width: 340px;
+      background: #111827;
+      color: #fff;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: .92rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,.22);
+    }
+    .why-panel::before {
+      content: "";
+      position: absolute;
+      right: 22px;
+      top: -8px;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #111827;
+    }
+
+    .muted { color: var(--muted); }
+    .tight { margin: 0; }
+    .mt { margin-top: 12px; }
+    .mb { margin-bottom: 12px; }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+    th, td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    th {
+      background: #f8fafc;
+      color: #334155;
+      font-size: .86rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td { border-bottom: 0; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 4px 8px;
+      font-size: .85rem;
+      font-weight: 650;
+      color: #374151;
+    }
+
+    .callout {
+      border: 1px solid #fde68a;
+      background: var(--warn-soft);
+      color: #78350f;
+      padding: 14px 16px;
+      border-radius: 14px;
+      margin-top: 14px;
+    }
+
+    .exercise-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .anlage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .input-table input {
+      width: 130px;
+      max-width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font: inherit;
+      background: #fff;
+    }
+    .input-table input:focus {
+      outline: 3px solid var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .custom-panel {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 18px;
+      margin: 16px 0 20px;
+    }
+
+    .custom-form {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .custom-field label {
+      display: block;
+      font-weight: 700;
+      font-size: .9rem;
+      margin-bottom: 5px;
+    }
+
+    .custom-field input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font: inherit;
+      background: #fff;
+    }
+
+    .custom-field input:focus {
+      outline: 3px solid var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .custom-error {
+      display: none;
+      border-radius: 12px;
+      background: var(--bad-soft);
+      color: #7f1d1d;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-weight: 650;
+    }
+
+    .custom-error.show { display: block; }
+
+    .result-section {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+
+    .status {
+      min-width: 150px;
+      font-weight: 750;
+    }
+    .status.ok { color: var(--ok); }
+    .status.bad { color: var(--bad); }
+    .solution {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--bad-soft);
+      color: #7f1d1d;
+      display: none;
+    }
+    .solution.show { display: block; }
+    .solution.ok-solution {
+      background: var(--ok-soft);
+      color: #14532d;
+    }
+
+    .summary-box {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .mini-stat {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px;
+    }
+    .mini-stat strong { display: block; font-size: 1.15rem; margin-top: 4px; }
+
+    .range-list {
+      columns: 2;
+      column-gap: 30px;
+      font-size: .94rem;
+    }
+    .range-list li { break-inside: avoid; margin: 0 0 6px; }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 22px;
+    }
+
+    @media (max-width: 920px) {
+      .hero, .grid-2, .grid-3, .anlage-grid, .summary-box, .custom-form { grid-template-columns: 1fr; }
+      .range-list { columns: 1; }
+      .why-panel { right: auto; left: 0; }
+      .why-panel::before { right: auto; left: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div class="hero-card">
+        <h1>Tagessatz & Kilometersatz sicher berechnen</h1>
+        <p class="subtitle">Lernseite zur Aufgabe 1.1.1 aus Steuerung und Kontrolle: Lkw-Modell Hover 23 TX. Du lernst den Rechenweg, verstehst die Begründung hinter jedem Schritt und kannst anschließend beliebige Übungsaufgaben mit neuen Zahlen lösen.</p>
+        <div class="badge-row">
+          <span class="badge">Fixkosten → Tagessatz</span>
+          <span class="badge">Variable Kosten → Kilometersatz</span>
+          <span class="badge">Abschreibung mit vorgegebener Aufteilung</span>
+          <span class="badge">Mit Warum-Erklärungen</span>
+          <span class="badge">Mit Prüf-Funktion</span>
+        </div>
+      </div>
+      <div class="hero-card exam-note">
+        <h3>Prüfungslogik in einem Satz</h3>
+        <p class="tight">Zeitabhängige Kosten werden auf Einsatztage verteilt; leistungsabhängige Kosten werden auf gefahrene Kilometer verteilt.</p>
+        <span class="formula">Tagessatz = fixe Jahreskosten ÷ Einsatztage</span>
+        <span class="formula">Kilometersatz = variable Jahreskosten ÷ Jahreskilometer</span>
+        <span class="formula">Original: Abschreibung 40 % zeitabhängig / 60 % leistungsabhängig</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1. Überblick: So gehst du bei Aufgabe 1.1.1 vor</h2>
+      <p class="muted">Die Aufgabe verlangt zwei Ergebnisse für das Lkw-Modell Hover 23 TX: den <strong>Tagessatz</strong> und den <strong>Kilometersatz</strong>. Dafür werden die Fahrzeugkosten nach Kostenverhalten getrennt.</p>
+
+      <div class="grid-2">
+        <div>
+          <div class="step">
+            <h3><span class="step-number">1</span> Abschreibungsbasis bilden
+              <span class="why-wrap"><button class="why-btn" data-why="why1">Warum?</button><span id="why1" class="why-panel" hidden>Die kalkulatorische Abschreibung soll nur den tatsächlichen Wertverzehr des Lkw abbilden. Reifen werden herausgenommen, weil sie über den Kilometersatz separat leistungsabhängig verrechnet werden. Der geschätzte Wiederverkaufserlös wird abgezogen, weil dieser Restwert am Ende zurückfließt.</span></span>
+            </h3>
+            <span class="formula">WBW Lkw − Reifensatz − Wiederverkaufserlös = Abschreibungsbasis</span>
+          </div>
+
+          <div class="step">
+            <h3><span class="step-number">2</span> Vorgegebene Aufteilung der Abschreibung übernehmen
+              <span class="why-wrap"><button class="why-btn" data-why="why2">Warum?</button><span id="why2" class="why-panel" hidden>Die Abschreibung wird in dieser Prüfungslogik nicht komplett fix oder komplett variabel behandelt. Ein vorgegebener Anteil gilt als zeitabhängig und gehört zum Tagessatz; der Rest gilt als leistungsabhängig und gehört zum Kilometersatz. Im Originalbeispiel sind es 40 % zeitabhängig und 60 % leistungsabhängig.</span></span>
+            </h3>
+            <span class="formula">Jahresabschreibung = Abschreibungsbasis ÷ Nutzungsdauer</span>
+            <span class="formula">zeitabhängiger Anteil → Tagessatz | leistungsabhängiger Anteil → Kilometersatz</span>
+          </div>
+
+          <div class="step">
+            <h3><span class="step-number">3</span> Kalkulatorische Zinsen berechnen
+              <span class="why-wrap"><button class="why-btn" data-why="why3">Warum?</button><span id="why3" class="why-panel" hidden>Das im Fahrzeug gebundene Kapital könnte alternativ verzinst werden. Diese entgangene Verzinsung wird als kalkulatorische Kosten berücksichtigt. Bei linearer Abschreibung wird vereinfacht mit 50 % der Anschaffungskosten gerechnet, weil das gebundene Kapital über die Nutzungsdauer durchschnittlich sinkt.</span></span>
+            </h3>
+            <span class="formula">((Anschaffungskosten ÷ 2) + Umlaufvermögen) × Zinssatz</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="step">
+            <h3><span class="step-number">4</span> Fixe Jahreskosten summieren
+              <span class="why-wrap"><button class="why-btn" data-why="why4">Warum?</button><span id="why4" class="why-panel" hidden>Fixe beziehungsweise zeitabhängige Kosten fallen unabhängig von der konkret gefahrenen Strecke an. Deshalb werden sie nicht pro Kilometer, sondern pro Einsatztag verrechnet.</span></span>
+            </h3>
+            <span class="formula">zeitabh. Abschreibung + Zinsen + Versicherung + Steuer + Lohn + Lohnnebenkosten + Spesen + Verwaltung + Wartung</span>
+          </div>
+
+          <div class="step">
+            <h3><span class="step-number">5</span> Tagessatz berechnen
+              <span class="why-wrap"><button class="why-btn" data-why="why5">Warum?</button><span id="why5" class="why-panel" hidden>Der Tagessatz sagt, wie viel ein Einsatz-/Betriebstag des Fahrzeugs kostet. Er ist wichtig, wenn später ein Rundlauf über mehrere Tage kalkuliert wird.</span></span>
+            </h3>
+            <span class="formula">Tagessatz = fixe Jahreskosten ÷ Einsatztage pro Jahr</span>
+          </div>
+
+          <div class="step">
+            <h3><span class="step-number">6</span> Variable Jahreskosten und Kilometersatz berechnen
+              <span class="why-wrap"><button class="why-btn" data-why="why6">Warum?</button><span id="why6" class="why-panel" hidden>Der Kilometersatz enthält Kosten, die durch die Fahrleistung verursacht werden: leistungsabhängige Abschreibung, Reifenverschleiß, Kraftstoff, Schmierstoffe und Reparaturen. Sie werden auf die Jahreskilometer verteilt.</span></span>
+            </h3>
+            <span class="formula">Kilometersatz = variable Jahreskosten ÷ Jahreslaufleistung</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Merksatz:</strong> Alles, was eher mit „Zeit bereitstellen“ zu tun hat, gehört zum Tagessatz. Alles, was eher mit „Fahren/Verbrauch/Verschleiß“ zu tun hat, gehört zum Kilometersatz. Bei der kalkulatorischen Abschreibung entscheidet die <strong>vorgegebene prozentuale Aufteilung</strong>.
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>2. Musterbeispiel Hover 23 TX</h2>
+        <p class="muted">Diese Werte orientieren sich an der abgebildeten Aufgabe und Musterlösung. Hier ist die Aufteilung der Abschreibung: <strong>40 % zeitabhängig</strong> und <strong>60 % leistungsabhängig</strong>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Position</th><th>Rechnung</th><th>Ergebnis</th></tr></thead>
+            <tbody>
+              <tr><td>Wiederverkaufserlös</td><td>164.800 € × 20 %</td><td>32.960,00 €</td></tr>
+              <tr><td>Abschreibungsbasis</td><td>192.000 € − 5.400 € − 32.960 €</td><td>153.640,00 €</td></tr>
+              <tr><td>Jahresabschreibung</td><td>153.640 € ÷ 5 Jahre</td><td>30.728,00 €</td></tr>
+              <tr><td>zeitabhängige Abschreibung</td><td>30.728 € × 40 %</td><td>12.291,20 €</td></tr>
+              <tr><td>kalkulatorische Zinsen</td><td>((164.800 € ÷ 2) + 6.000 €) × 6 %</td><td>5.304,00 €</td></tr>
+              <tr><td>Summe fixe Jahreskosten</td><td>alle fixen Kosten addieren</td><td>90.405,20 €</td></tr>
+              <tr><td><strong>Tagessatz</strong></td><td>90.405,20 € ÷ 240 Tage</td><td><strong>376,69 €</strong></td></tr>
+              <tr><td>leistungsabhängige Abschreibung</td><td>30.728 € × 60 %</td><td>18.436,80 €</td></tr>
+              <tr><td>Reifenkosten</td><td>5.400 € × 110.000 km ÷ 140.000 km</td><td>4.242,86 €</td></tr>
+              <tr><td>Kraftstoff</td><td>110.000 km ÷ 100 × 33 l × 1,27 €</td><td>46.101,00 €</td></tr>
+              <tr><td>Summe variable Jahreskosten</td><td>alle variablen Kosten addieren</td><td>84.280,66 €</td></tr>
+              <tr><td><strong>Kilometersatz</strong></td><td>84.280,66 € ÷ 110.000 km</td><td><strong>0,77 €/km</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Typische Fehler</h2>
+        <div class="step">
+          <h3>40 % / 60 % blind übernehmen</h3>
+          <p class="tight muted">Im Originalbeispiel gilt 40 % zeitabhängig und 60 % leistungsabhängig. In einer anderen Aufgabe kann aber eine andere Aufteilung gegeben sein. Deshalb immer die Angaben in der Anlage lesen.</p>
+        </div>
+        <div class="step">
+          <h3>Reifen doppelt abschreiben</h3>
+          <p class="tight muted">Falsch: Reifen in der Abschreibungsbasis lassen und zusätzlich als variable Reifenkosten rechnen. Richtig: Reifen aus der Abschreibungsbasis herausnehmen.</p>
+        </div>
+        <div class="step">
+          <h3>Wiederverkaufserlös falsch beziehen</h3>
+          <p class="tight muted">In dieser Aufgabe sind 20 % des <strong>Anschaffungspreises</strong> gemeint, nicht 20 % der Wiederbeschaffungskosten.</p>
+        </div>
+        <div class="step">
+          <h3>Kfz-Steuer nicht auf Jahr hochrechnen</h3>
+          <p class="tight muted">„Pro Quartal“ bedeutet: viermal im Jahr. Also: Quartalsbetrag × 4.</p>
+        </div>
+        <div class="step">
+          <h3>Monatsbeträge nicht auf Jahr hochrechnen</h3>
+          <p class="tight muted">Fahrerlohn und Wartungsvertrag stehen pro Monat. Für die Jahreskosten: Monatsbetrag × 12.</p>
+        </div>
+        <div class="step">
+          <h3>Beim Kilometersatz durch Tage teilen</h3>
+          <p class="tight muted">Der Kilometersatz wird immer durch die Jahreslaufleistung geteilt, nicht durch die Einsatztage.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="trainer">
+      <div class="exercise-top">
+        <div>
+          <h2>4. Übungsgenerator mit Prüfung</h2>
+          <p class="muted tight">Lade das Originalbeispiel oder erstelle eine neue Aufgabe mit anderen Zahlen. Trage deine Ergebnisse ein und prüfe sie.</p>
+        </div>
+        <div class="button-row">
+          <button id="loadOriginal">Originalbeispiel laden</button>
+          <button id="newTask" class="secondary">Neue Übungsaufgabe</button>
+          <button id="showRanges" class="ghost">Wertebereiche anzeigen</button>
+          <button id="toggleCustom" class="ghost">Eigene Werte eingeben</button>
+        </div>
+      </div>
+
+      <div id="ranges" class="callout" hidden>
+        <strong>Wertebereiche des Generators:</strong>
+        <ul class="range-list">
+          <li>Wiederbeschaffungskosten: ca. 140.000–270.000 €</li>
+          <li>Anschaffungskosten: ca. 120.000–220.000 €</li>
+          <li>Umlaufvermögen: 2.000–12.000 €</li>
+          <li>Jahreslaufleistung: 80.000–150.000 km</li>
+          <li>Nutzungsdauer: 4–7 Jahre</li>
+          <li>Reifenlaufleistung: 100.000–180.000 km</li>
+          <li>Reifensatz: 3.500–8.000 €</li>
+          <li>Wiederverkaufserlös: 10–30 % des Anschaffungspreises</li>
+          <li>Aufteilung Abschreibung: 30–50 % zeitabhängig; Rest leistungsabhängig</li>
+          <li>Einsatztage: 200–260 Tage</li>
+          <li>Versicherung: 4.000–12.000 € pro Jahr</li>
+          <li>Kfz-Steuer: 900–2.200 € pro Quartal</li>
+          <li>Kraftstoffpreis: 1,10–1,90 € je Liter</li>
+          <li>Verbrauch: 24–38 Liter je 100 km</li>
+          <li>Schmierstoffe: 400–1.200 € pro Halbjahr</li>
+          <li>Fahrerlohn: 2.100–3.500 € pro Monat</li>
+          <li>Lohnnebenkosten: 15–28 %</li>
+          <li>Spesen: 10–24 € pro Einsatztag</li>
+          <li>Verwaltungskosten: 3.000–10.000 € pro Jahr</li>
+          <li>Wartungsvertrag: 600–1.600 € pro Monat</li>
+          <li>Reparaturkosten: 8.000–25.000 € pro Jahr</li>
+          <li>kalkulatorischer Zinssatz: 3–8 %</li>
+        </ul>
+      </div>
+
+      <div id="customInputPanel" class="custom-panel" hidden>
+        <h3>Eigene Werte eingeben und automatisch berechnen</h3>
+        <p class="muted tight">Trage deine Werte aus einer anderen Anlage ein. Danach berechnet die Seite den Tagessatz und Kilometersatz und zeigt alle Gleichungen mit Ergebnissen. Prozentwerte bitte als Zahl eintragen, z. B. <span class="pill">40</span> für 40 %.</p>
+        <div class="custom-form" id="customForm"></div>
+        <div class="button-row mt">
+          <button id="calculateCustom" type="button">Mit eigenen Werten berechnen</button>
+          <button id="loadOriginalIntoCustom" type="button" class="ghost">Originalwerte ins Formular laden</button>
+          <button id="loadCurrentIntoCustom" type="button" class="ghost">Aktuelle Aufgabe ins Formular laden</button>
+        </div>
+        <div id="customError" class="custom-error"></div>
+        <div id="customResults" class="result-section" hidden>
+          <h3>Berechnete Gleichungen und Ergebnisse</h3>
+          <div class="table-wrap">
+            <table id="customResultTable">
+              <thead><tr><th>Bereich</th><th>Schritt</th><th>Gleichung</th><th>Ergebnis</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="anlage-grid">
+        <div>
+          <h3>Anlage 1: gegebene Werte</h3>
+          <div class="table-wrap">
+            <table id="givenTable">
+              <thead><tr><th>Position</th><th>Wert</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>Zwischenergebnisse</h3>
+          <p class="muted">Diese Felder zeigen erst nach dem Prüfen eine Bewertung. Du kannst deutsche Schreibweise verwenden, z. B. <span class="pill">12.291,20</span>, <span class="pill">6.400</span> oder <span class="pill">0,77</span>. Du kannst jeden Schritt einzeln prüfen oder unten alle Felder auf einmal prüfen.</p>
+          <div class="summary-box" id="summaryBox">
+            <div class="mini-stat"><span class="muted">Tagessatz</span><strong>?</strong></div>
+            <div class="mini-stat"><span class="muted">Kilometersatz</span><strong>?</strong></div>
+            <div class="mini-stat"><span class="muted">Fixkosten/Jahr</span><strong>?</strong></div>
+            <div class="mini-stat"><span class="muted">Variable Kosten/Jahr</span><strong>?</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="mt">
+        <h3>A) Tagessatz berechnen</h3>
+        <div class="table-wrap">
+          <table class="input-table" id="fixedTable">
+            <thead><tr><th>Schritt</th><th>Dein Ergebnis</th><th>Einzeln prüfen</th><th>Status</th><th>Hilfe/Lösung bei Fehler</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="mt">
+        <h3>B) Kilometersatz berechnen</h3>
+        <div class="table-wrap">
+          <table class="input-table" id="variableTable">
+            <thead><tr><th>Schritt</th><th>Dein Ergebnis</th><th>Einzeln prüfen</th><th>Status</th><th>Hilfe/Lösung bei Fehler</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="button-row mt">
+        <button id="checkAll">Alles prüfen</button>
+        <button id="revealAll" class="ghost">Komplette Lösung anzeigen</button>
+        <button id="clearInputs" class="danger">Eingaben löschen</button>
+      </div>
+
+      <p class="footer-note">Hinweis: Der Generator nutzt dieselbe Rechenlogik wie die Musterlösung. Der zeitabhängige Anteil der Abschreibung steht in der Anlage; der leistungsabhängige Anteil ist der Rest bis 100 %. Beim Originalbeispiel sind das 40 % und 60 %.</p>
+    </section>
+  </main>
+
+  <script>
+    const fmtEUR = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const fmtNum = (n, d = 0) => n.toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const fmtRate = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const r2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+    const original = {
+      wbw: 192000,
+      ak: 164800,
+      uv: 6000,
+      annualKm: 110000,
+      years: 5,
+      tireLife: 140000,
+      tireCost: 5400,
+      resalePercent: 20,
+      depFixedPercent: 40,
+      days: 240,
+      insurance: 8000,
+      taxQuarter: 1600,
+      fuelPrice: 1.27,
+      fuelConsumption: 33,
+      lubricantHalfYear: 750,
+      wageMonth: 2500,
+      payrollPercent: 21,
+      expensesDay: 14,
+      adminYear: 6750,
+      maintenanceMonth: 1000,
+      repairYear: 14000,
+      interestRate: 6
+    };
+
+    let task = structuredClone(original);
+    let fixedRows = [];
+    let variableRows = [];
+
+    const customFields = [
+      { key: 'wbw', label: 'Wiederbeschaffungskosten des Lkw-Modells', decimals: 2 },
+      { key: 'ak', label: 'Anschaffungskosten', decimals: 2 },
+      { key: 'uv', label: 'durchschnittlich gebundenes Umlaufvermögen', decimals: 2 },
+      { key: 'annualKm', label: 'voraussichtliche Jahreslaufleistung in km', decimals: 0 },
+      { key: 'years', label: 'geschätzte betriebliche Nutzungsdauer in Jahren', decimals: 0 },
+      { key: 'tireLife', label: 'geschätzte Laufleistung der Reifen in km', decimals: 0 },
+      { key: 'tireCost', label: 'Kosten eines Reifensatzes', decimals: 2 },
+      { key: 'resalePercent', label: 'Wiederverkaufserlös in % des Anschaffungspreises', decimals: 2 },
+      { key: 'depFixedPercent', label: 'zeitabhängiger Anteil der Abschreibung in %', decimals: 2 },
+      { key: 'days', label: 'Einsatztage pro Jahr', decimals: 0 },
+      { key: 'insurance', label: 'Kfz-Versicherung pro Jahr', decimals: 2 },
+      { key: 'taxQuarter', label: 'Kfz-Steuer pro Quartal', decimals: 2 },
+      { key: 'fuelPrice', label: 'Kraftstoff je Liter inkl. AdBlue, netto', decimals: 2 },
+      { key: 'fuelConsumption', label: 'Kraftstoffverbrauch je 100 km in Litern', decimals: 2 },
+      { key: 'lubricantHalfYear', label: 'Schmierstoffe pro Halbjahr', decimals: 2 },
+      { key: 'wageMonth', label: 'Fahrerlohn brutto pro Monat', decimals: 2 },
+      { key: 'payrollPercent', label: 'Lohnnebenkosten des Arbeitgebers in %', decimals: 2 },
+      { key: 'expensesDay', label: 'Spesen pro Einsatztag', decimals: 2 },
+      { key: 'adminYear', label: 'allgemeine Verwaltungskosten pro Jahr', decimals: 2 },
+      { key: 'maintenanceMonth', label: 'Wartungsvertrag pro Monat', decimals: 2 },
+      { key: 'repairYear', label: 'Reparaturkosten pro Jahr', decimals: 2 },
+      { key: 'interestRate', label: 'kalkulatorischer Zinssatz in %', decimals: 2 }
+    ];
+
+    function inputValueDE(value, decimals) {
+      return Number(value).toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function renderCustomForm(values = task) {
+      const form = document.getElementById('customForm');
+      if (!form) return;
+      form.innerHTML = customFields.map(field => `
+        <div class="custom-field">
+          <label for="custom_${field.key}">${field.label}</label>
+          <input id="custom_${field.key}" data-custom-key="${field.key}" inputmode="decimal" value="${inputValueDE(values[field.key], field.decimals)}">
+        </div>
+      `).join('');
+      const errorBox = document.getElementById('customError');
+      const resultBox = document.getElementById('customResults');
+      if (errorBox) { errorBox.textContent = ''; errorBox.classList.remove('show'); }
+      if (resultBox) resultBox.hidden = true;
+    }
+
+    function getCustomTaskFromForm() {
+      const nextTask = {};
+      const errors = [];
+
+      customFields.forEach(field => {
+        const input = document.getElementById(`custom_${field.key}`);
+        const value = input ? parseInput(input.value) : NaN;
+        if (!Number.isFinite(value)) {
+          errors.push(field.label);
+        } else {
+          nextTask[field.key] = value;
+        }
+      });
+
+      const positiveFields = customFields.filter(f => !['resalePercent', 'depFixedPercent', 'payrollPercent', 'interestRate'].includes(f.key));
+      positiveFields.forEach(field => {
+        if (Number.isFinite(nextTask[field.key]) && nextTask[field.key] <= 0) errors.push(field.label + ' muss größer als 0 sein');
+      });
+
+      if (Number.isFinite(nextTask.depFixedPercent) && (nextTask.depFixedPercent <= 0 || nextTask.depFixedPercent >= 100)) {
+        errors.push('zeitabhängiger Anteil der Abschreibung muss zwischen 0 und 100 % liegen');
+      }
+      if (Number.isFinite(nextTask.resalePercent) && (nextTask.resalePercent < 0 || nextTask.resalePercent >= 100)) {
+        errors.push('Wiederverkaufserlös muss zwischen 0 und unter 100 % liegen');
+      }
+      if (Number.isFinite(nextTask.payrollPercent) && nextTask.payrollPercent < 0) {
+        errors.push('Lohnnebenkosten dürfen nicht negativ sein');
+      }
+      if (Number.isFinite(nextTask.interestRate) && nextTask.interestRate < 0) {
+        errors.push('kalkulatorischer Zinssatz darf nicht negativ sein');
+      }
+      if (Number.isFinite(nextTask.wbw) && Number.isFinite(nextTask.tireCost) && Number.isFinite(nextTask.ak) && Number.isFinite(nextTask.resalePercent)) {
+        const resale = nextTask.ak * nextTask.resalePercent / 100;
+        if (nextTask.wbw - nextTask.tireCost - resale <= 0) errors.push('Abschreibungsbasis muss positiv sein: WBW − Reifen − Wiederverkaufserlös');
+      }
+
+      return { nextTask, errors };
+    }
+
+    function randInt(min, max, step = 1) {
+      const count = Math.floor((max - min) / step) + 1;
+      return min + Math.floor(Math.random() * count) * step;
+    }
+    function randFloat(min, max, step = 0.01) {
+      const count = Math.floor((max - min) / step) + 1;
+      return Math.round((min + Math.floor(Math.random() * count) * step) * 100) / 100;
+    }
+
+    function newRandomTask() {
+      const ak = randInt(120000, 220000, 1000);
+      const wbw = randInt(Math.ceil(ak * 1.08 / 1000) * 1000, Math.ceil(ak * 1.25 / 1000) * 1000, 1000);
+      const annualKm = randInt(80000, 150000, 5000);
+      const tireLife = randInt(100000, 180000, 5000);
+      const depFixedPercent = randInt(30, 50, 5);
+      return {
+        wbw,
+        ak,
+        uv: randInt(2000, 12000, 500),
+        annualKm,
+        years: randInt(4, 7, 1),
+        tireLife,
+        tireCost: randInt(3500, 8000, 100),
+        resalePercent: randInt(10, 30, 1),
+        depFixedPercent,
+        days: randInt(200, 260, 5),
+        insurance: randInt(4000, 12000, 100),
+        taxQuarter: randInt(900, 2200, 50),
+        fuelPrice: randFloat(1.10, 1.90, 0.01),
+        fuelConsumption: randFloat(24, 38, 0.5),
+        lubricantHalfYear: randInt(400, 1200, 50),
+        wageMonth: randInt(2100, 3500, 50),
+        payrollPercent: randInt(15, 28, 1),
+        expensesDay: randInt(10, 24, 1),
+        adminYear: randInt(3000, 10000, 100),
+        maintenanceMonth: randInt(600, 1600, 50),
+        repairYear: randInt(8000, 25000, 500),
+        interestRate: randFloat(3, 8, 0.25)
+      };
+    }
+
+    function calc(t) {
+      const depVariablePercent = 100 - t.depFixedPercent;
+      const resale = r2(t.ak * t.resalePercent / 100);
+      const depBase = r2(t.wbw - t.tireCost - resale);
+      const annualDep = r2(depBase / t.years);
+      const depFixed = r2(annualDep * t.depFixedPercent / 100);
+      const depVariable = r2(annualDep * depVariablePercent / 100);
+      const boundCapital = r2(t.ak / 2 + t.uv);
+      const interest = r2(boundCapital * t.interestRate / 100);
+      const taxYear = r2(t.taxQuarter * 4);
+      const wageYear = r2(t.wageMonth * 12);
+      const payroll = r2(wageYear * t.payrollPercent / 100);
+      const expensesYear = r2(t.expensesDay * t.days);
+      const maintenanceYear = r2(t.maintenanceMonth * 12);
+      const fixedTotal = r2(depFixed + interest + t.insurance + taxYear + wageYear + payroll + expensesYear + t.adminYear + maintenanceYear);
+      const dailyRate = r2(fixedTotal / t.days);
+      const tireYear = r2(t.tireCost * t.annualKm / t.tireLife);
+      const fuelYear = r2(t.annualKm / 100 * t.fuelConsumption * t.fuelPrice);
+      const lubricantYear = r2(t.lubricantHalfYear * 2);
+      const variableTotal = r2(depVariable + tireYear + fuelYear + lubricantYear + t.repairYear);
+      const kmRate = r2(variableTotal / t.annualKm);
+      return {
+        depVariablePercent,
+        resale, depBase, annualDep, depFixed, depVariable, boundCapital, interest,
+        taxYear, wageYear, payroll, expensesYear, maintenanceYear, fixedTotal, dailyRate,
+        tireYear, fuelYear, lubricantYear, variableTotal, kmRate
+      };
+    }
+
+    function makeRows(t) {
+      const c = calc(t);
+      fixedRows = [
+        { key: 'resale', label: 'Wiederverkaufserlös', expected: c.resale, formula: `${fmtEUR(t.ak)} × ${fmtNum(t.resalePercent)} % = ${fmtEUR(c.resale)}` },
+        { key: 'depBase', label: 'Abschreibungsbasis', expected: c.depBase, formula: `${fmtEUR(t.wbw)} − ${fmtEUR(t.tireCost)} − ${fmtEUR(c.resale)} = ${fmtEUR(c.depBase)}` },
+        { key: 'annualDep', label: 'Jahresabschreibung', expected: c.annualDep, formula: `${fmtEUR(c.depBase)} ÷ ${fmtNum(t.years)} Jahre = ${fmtEUR(c.annualDep)}` },
+        { key: 'depFixed', label: `zeitabhängige Abschreibung (${fmtNum(t.depFixedPercent)} %)`, expected: c.depFixed, formula: `${fmtEUR(c.annualDep)} × ${fmtNum(t.depFixedPercent)} % = ${fmtEUR(c.depFixed)}` },
+        { key: 'interest', label: 'kalkulatorische Zinsen', expected: c.interest, formula: `((${fmtEUR(t.ak)} ÷ 2) + ${fmtEUR(t.uv)}) × ${fmtNum(t.interestRate, 2)} % = ${fmtEUR(c.interest)}` },
+        { key: 'taxYear', label: 'Kfz-Steuer pro Jahr', expected: c.taxYear, formula: `${fmtEUR(t.taxQuarter)} × 4 Quartale = ${fmtEUR(c.taxYear)}` },
+        { key: 'wageYear', label: 'Fahrerlohn pro Jahr', expected: c.wageYear, formula: `${fmtEUR(t.wageMonth)} × 12 Monate = ${fmtEUR(c.wageYear)}` },
+        { key: 'payroll', label: 'Lohnnebenkosten', expected: c.payroll, formula: `${fmtEUR(c.wageYear)} × ${fmtNum(t.payrollPercent)} % = ${fmtEUR(c.payroll)}` },
+        { key: 'expensesYear', label: 'Spesen pro Jahr', expected: c.expensesYear, formula: `${fmtEUR(t.expensesDay)} × ${fmtNum(t.days)} Einsatztage = ${fmtEUR(c.expensesYear)}` },
+        { key: 'maintenanceYear', label: 'Wartung pro Jahr', expected: c.maintenanceYear, formula: `${fmtEUR(t.maintenanceMonth)} × 12 Monate = ${fmtEUR(c.maintenanceYear)}` },
+        { key: 'fixedTotal', label: 'Summe fixe Jahreskosten', expected: c.fixedTotal, formula: `${fmtEUR(c.depFixed)} + ${fmtEUR(c.interest)} + ${fmtEUR(t.insurance)} + ${fmtEUR(c.taxYear)} + ${fmtEUR(c.wageYear)} + ${fmtEUR(c.payroll)} + ${fmtEUR(c.expensesYear)} + ${fmtEUR(t.adminYear)} + ${fmtEUR(c.maintenanceYear)} = ${fmtEUR(c.fixedTotal)}` },
+        { key: 'dailyRate', label: 'Tagessatz', expected: c.dailyRate, formula: `${fmtEUR(c.fixedTotal)} ÷ ${fmtNum(t.days)} Einsatztage = ${fmtEUR(c.dailyRate)}` }
+      ];
+
+      variableRows = [
+        { key: 'depVariable', label: `leistungsabhängige Abschreibung (${fmtNum(c.depVariablePercent)} %)`, expected: c.depVariable, formula: `${fmtEUR(c.annualDep)} × ${fmtNum(c.depVariablePercent)} % = ${fmtEUR(c.depVariable)}` },
+        { key: 'tireYear', label: 'Reifenkosten pro Jahr', expected: c.tireYear, formula: `${fmtEUR(t.tireCost)} × ${fmtNum(t.annualKm)} km ÷ ${fmtNum(t.tireLife)} km = ${fmtEUR(c.tireYear)}` },
+        { key: 'fuelYear', label: 'Kraftstoffkosten pro Jahr', expected: c.fuelYear, formula: `${fmtNum(t.annualKm)} km ÷ 100 × ${fmtNum(t.fuelConsumption, 2)} l × ${fmtEUR(t.fuelPrice)} = ${fmtEUR(c.fuelYear)}` },
+        { key: 'lubricantYear', label: 'Schmierstoffe pro Jahr', expected: c.lubricantYear, formula: `${fmtEUR(t.lubricantHalfYear)} × 2 Halbjahre = ${fmtEUR(c.lubricantYear)}` },
+        { key: 'repairYear', label: 'Reparaturkosten pro Jahr', expected: t.repairYear, formula: `gegeben: ${fmtEUR(t.repairYear)} pro Jahr` },
+        { key: 'variableTotal', label: 'Summe variable Jahreskosten', expected: c.variableTotal, formula: `${fmtEUR(c.depVariable)} + ${fmtEUR(c.tireYear)} + ${fmtEUR(c.fuelYear)} + ${fmtEUR(c.lubricantYear)} + ${fmtEUR(t.repairYear)} = ${fmtEUR(c.variableTotal)}` },
+        { key: 'kmRate', label: 'Kilometersatz', expected: c.kmRate, formula: `${fmtEUR(c.variableTotal)} ÷ ${fmtNum(t.annualKm)} km = ${fmtRate(c.kmRate)} €/km` }
+      ];
+    }
+
+    function renderGivenTable(t) {
+      const variablePercent = 100 - t.depFixedPercent;
+      const rows = [
+        ['Wiederbeschaffungskosten des Lkw-Modells', fmtEUR(t.wbw)],
+        ['Anschaffungskosten', fmtEUR(t.ak)],
+        ['durchschnittlich gebundenes Umlaufvermögen', fmtEUR(t.uv)],
+        ['voraussichtliche Jahreslaufleistung', fmtNum(t.annualKm) + ' km'],
+        ['geschätzte betriebliche Nutzungsdauer', fmtNum(t.years) + ' Jahre'],
+        ['geschätzte Laufleistung der Reifen', fmtNum(t.tireLife) + ' km'],
+        ['Kosten eines Reifensatzes', fmtEUR(t.tireCost)],
+        ['geschätzter Wiederverkaufserlös', fmtNum(t.resalePercent) + ' % des Anschaffungspreises'],
+        ['Aufteilung kalkulatorische Abschreibung', fmtNum(t.depFixedPercent) + ' % zeitabhängig / ' + fmtNum(variablePercent) + ' % leistungsabhängig'],
+        ['Einsatztage pro Jahr', fmtNum(t.days)],
+        ['Kfz-Versicherung pro Jahr', fmtEUR(t.insurance)],
+        ['Kfz-Steuer pro Quartal', fmtEUR(t.taxQuarter)],
+        ['Kraftstoff je Liter inkl. AdBlue, netto', fmtEUR(t.fuelPrice)],
+        ['Kraftstoffverbrauch je 100 km', fmtNum(t.fuelConsumption, 2) + ' Liter'],
+        ['Schmierstoffe pro Halbjahr', fmtEUR(t.lubricantHalfYear)],
+        ['Fahrerlohn brutto pro Monat', fmtEUR(t.wageMonth)],
+        ['Lohnnebenkosten des Arbeitgebers', fmtNum(t.payrollPercent) + ' %'],
+        ['Spesen pro Einsatztag', fmtEUR(t.expensesDay)],
+        ['allgemeine Verwaltungskosten pro Jahr', fmtEUR(t.adminYear)],
+        ['Wartungsvertrag pro Monat', fmtEUR(t.maintenanceMonth)],
+        ['Reparaturkosten pro Jahr', fmtEUR(t.repairYear)],
+        ['kalkulatorischer Zinssatz', fmtNum(t.interestRate, 2) + ' %']
+      ];
+      const tbody = document.querySelector('#givenTable tbody');
+      tbody.innerHTML = rows.map(([k, v]) => `<tr><td>${k}</td><td><strong>${v}</strong></td></tr>`).join('');
+    }
+
+    function rowHtml(row) {
+      return `<tr data-key="${row.key}">
+        <td><strong>${row.label}</strong></td>
+        <td><input inputmode="decimal" autocomplete="off" placeholder="z. B. ${fmtRate(row.expected)}" aria-label="${row.label}"></td>
+        <td><button class="check-row" type="button" data-check-key="${row.key}">Prüfen</button></td>
+        <td class="status">Noch nicht geprüft</td>
+        <td><div class="solution"><span class="formula">${row.formula}</span></div></td>
+      </tr>`;
+    }
+
+    function renderInputs() {
+      document.querySelector('#fixedTable tbody').innerHTML = fixedRows.map(rowHtml).join('');
+      document.querySelector('#variableTable tbody').innerHTML = variableRows.map(rowHtml).join('');
+      renderSummary(false);
+    }
+
+    function renderSummary(show) {
+      const c = calc(task);
+      const values = show
+        ? [fmtEUR(c.dailyRate), fmtRate(c.kmRate) + ' €/km', fmtEUR(c.fixedTotal), fmtEUR(c.variableTotal)]
+        : ['?', '?', '?', '?'];
+      const labels = ['Tagessatz', 'Kilometersatz', 'Fixkosten/Jahr', 'Variable Kosten/Jahr'];
+      document.querySelector('#summaryBox').innerHTML = labels.map((label, i) => `
+        <div class="mini-stat"><span class="muted">${label}</span><strong>${values[i]}</strong></div>
+      `).join('');
+    }
+
+    function resultValueForRow(row) {
+      if (row.key === 'kmRate') return fmtRate(row.expected) + ' €/km';
+      return fmtEUR(row.expected);
+    }
+
+    function renderCustomResultTable() {
+      const tbody = document.querySelector('#customResultTable tbody');
+      if (!tbody) return;
+      const fixedHtml = fixedRows.map(row => `
+        <tr><td>Tagessatz</td><td>${row.label}</td><td><span class="formula">${row.formula}</span></td><td><strong>${resultValueForRow(row)}</strong></td></tr>
+      `).join('');
+      const variableHtml = variableRows.map(row => `
+        <tr><td>Kilometersatz</td><td>${row.label}</td><td><span class="formula">${row.formula}</span></td><td><strong>${resultValueForRow(row)}</strong></td></tr>
+      `).join('');
+      tbody.innerHTML = fixedHtml + variableHtml;
+      const box = document.getElementById('customResults');
+      if (box) box.hidden = false;
+    }
+
+    function parseInput(value) {
+      if (!value || !value.trim()) return NaN;
+      let cleaned = value.trim()
+        .replace(/€/g, '')
+        .replace(/eur/gi, '')
+        .replace(/km/gi, '');
+
+      cleaned = Array.from(cleaned).filter(ch => ch.trim() !== '').join('');
+
+      const hasComma = cleaned.includes(',');
+      const hasDot = cleaned.includes('.');
+
+      if (hasComma && hasDot) {
+        // Deutsche Schreibweise: 6.400,00 oder 90.405,20
+        cleaned = cleaned.split('.').join('').replace(',', '.');
+      } else if (hasComma) {
+        // Deutsche Dezimalschreibweise: 0,77 oder 6400,00
+        cleaned = cleaned.replace(',', '.');
+      } else if (hasDot) {
+        // Punkt kann Tausendertrennzeichen oder Dezimalpunkt sein.
+        // 6.400 soll als 6400 erkannt werden; 0.77 bleibt 0.77.
+        const germanThousands = /^-?[0-9]{1,3}([.][0-9]{3})+$/.test(cleaned);
+        if (germanThousands) cleaned = cleaned.split('.').join('');
+      }
+
+      return Number(cleaned);
+    }
+
+    function checkOneRow(row, tr, reveal = false) {
+      const input = tr.querySelector('input');
+      const status = tr.querySelector('.status');
+      const sol = tr.querySelector('.solution');
+      const val = parseInput(input.value);
+      const isOk = Number.isFinite(val) && Math.abs(r2(val) - row.expected) <= 0.02;
+
+      if (isOk) {
+        status.textContent = 'Richtig';
+        status.className = 'status ok';
+        sol.classList.add('show', 'ok-solution');
+        sol.innerHTML = `<strong>Richtig.</strong> <span class="formula">${row.formula}</span>`;
+        return true;
+      }
+
+      status.textContent = input.value.trim() ? 'Noch falsch' : 'Fehlt';
+      status.className = 'status bad';
+      if (reveal || input.value.trim()) {
+        sol.classList.add('show');
+        sol.classList.remove('ok-solution');
+        sol.innerHTML = `<strong>Korrekt wäre:</strong> <span class="formula">${row.formula}</span>`;
+        if (reveal) input.value = fmtRate(row.expected);
+      } else {
+        sol.classList.remove('show', 'ok-solution');
+      }
+      return false;
+    }
+
+    function checkTable(rows, tableSelector, reveal = false) {
+      let correct = 0;
+      const tbody = document.querySelector(tableSelector + ' tbody');
+      rows.forEach(row => {
+        const tr = tbody.querySelector(`tr[data-key="${row.key}"]`);
+        if (checkOneRow(row, tr, reveal)) correct++;
+      });
+      return correct;
+    }
+
+    function initCurrentTask() {
+      makeRows(task);
+      renderGivenTable(task);
+      renderInputs();
+      renderCustomForm(task);
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('.why-btn')) {
+        const id = e.target.dataset.why;
+        document.querySelectorAll('.why-panel').forEach(p => {
+          if (p.id !== id) p.hidden = true;
+        });
+        const panel = document.getElementById(id);
+        panel.hidden = !panel.hidden;
+      } else if (!e.target.closest('.why-wrap')) {
+        document.querySelectorAll('.why-panel').forEach(p => p.hidden = true);
+      }
+    });
+
+    document.getElementById('loadOriginal').addEventListener('click', () => {
+      task = structuredClone(original);
+      initCurrentTask();
+    });
+
+    document.getElementById('newTask').addEventListener('click', () => {
+      task = newRandomTask();
+      initCurrentTask();
+      window.location.hash = 'trainer';
+    });
+
+    document.getElementById('showRanges').addEventListener('click', () => {
+      const box = document.getElementById('ranges');
+      box.hidden = !box.hidden;
+    });
+
+    document.getElementById('toggleCustom').addEventListener('click', () => {
+      const panel = document.getElementById('customInputPanel');
+      panel.hidden = !panel.hidden;
+    });
+
+    document.getElementById('loadOriginalIntoCustom').addEventListener('click', () => {
+      renderCustomForm(original);
+    });
+
+    document.getElementById('loadCurrentIntoCustom').addEventListener('click', () => {
+      renderCustomForm(task);
+    });
+
+    document.getElementById('calculateCustom').addEventListener('click', () => {
+      const errorBox = document.getElementById('customError');
+      const { nextTask, errors } = getCustomTaskFromForm();
+
+      if (errors.length) {
+        errorBox.textContent = 'Bitte prüfen: ' + errors.join('; ');
+        errorBox.classList.add('show');
+        document.getElementById('customResults').hidden = true;
+        return;
+      }
+
+      errorBox.textContent = '';
+      errorBox.classList.remove('show');
+      task = nextTask;
+      makeRows(task);
+      renderGivenTable(task);
+      renderInputs();
+      renderSummary(true);
+      renderCustomResultTable();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.matches('.check-row')) return;
+      const key = e.target.dataset.checkKey;
+      const row = fixedRows.find(r => r.key === key) || variableRows.find(r => r.key === key);
+      if (!row) return;
+      const tr = e.target.closest('tr');
+      checkOneRow(row, tr, false);
+      renderSummary(true);
+    });
+
+    document.getElementById('checkAll').addEventListener('click', () => {
+      checkTable(fixedRows, '#fixedTable', false);
+      checkTable(variableRows, '#variableTable', false);
+      renderSummary(true);
+    });
+
+    document.getElementById('revealAll').addEventListener('click', () => {
+      checkTable(fixedRows, '#fixedTable', true);
+      checkTable(variableRows, '#variableTable', true);
+      renderSummary(true);
+    });
+
+    document.getElementById('clearInputs').addEventListener('click', () => {
+      document.querySelectorAll('.input-table input').forEach(i => i.value = '');
+      document.querySelectorAll('.status').forEach(s => { s.textContent = 'Noch nicht geprüft'; s.className = 'status'; });
+      document.querySelectorAll('.solution').forEach(s => { s.classList.remove('show', 'ok-solution'); });
+      renderSummary(false);
+    });
+
+    initCurrentTask();
+  </script>
+</body>
+</html>

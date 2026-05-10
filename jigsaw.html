@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle-Spiel - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Puzzle-Spiel</h1>
+
+                <nav>
+                    <button onclick="window.location.href='games.html'" aria-label="Zurück zu den Spielen">
+                        Zurück zu den Spielen
+                    </button>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="jigsaw-section">
+            <div class="welcome">
+                <h2>1. Bild auswählen</h2>
+                <p>Wähle zuerst eine Kategorie und dann ein Bild.</p>
+
+                <h3 class="jigsaw-small-heading">Kategorie</h3>
+                <div id="jigsaw-category-buttons" class="jigsaw-option-buttons" aria-label="Kategorie auswählen"></div>
+
+                <h3 class="jigsaw-small-heading">Bild</h3>
+                <div id="jigsaw-picture-buttons" class="jigsaw-option-buttons" aria-label="Bild auswählen"></div>
+            </div>
+
+            <div class="memory-set-choice">
+                <h2>2. Teileanzahl wählen</h2>
+                <p>Wähle aus, wie viele Puzzleteile verwendet werden sollen.</p>
+
+                <div id="jigsaw-size-buttons" class="jigsaw-option-buttons" aria-label="Teileanzahl auswählen"></div>
+            </div>
+
+            <div class="jigsaw-start-box">
+                <h2>3. Starten</h2>
+
+                <button id="jigsaw-start-button" type="button">
+                    Puzzle starten
+                </button>
+
+                <label class="jigsaw-shadow-toggle">
+                    <input id="jigsaw-shadow-toggle" type="checkbox" checked>
+                    Schattenbild anzeigen
+                </label>
+            </div>
+
+            <p id="jigsaw-status" class="memory-status" aria-live="polite">
+                Bitte zuerst ein Bild und eine Teileanzahl auswählen.
+            </p>
+
+            <div id="jigsaw-play-area" class="jigsaw-play-area" hidden>
+                <div class="jigsaw-board-column">
+                    <h2>Puzzlefläche</h2>
+
+                    <div id="jigsaw-board-frame" class="jigsaw-board-frame">
+                        <svg id="jigsaw-board-svg" class="jigsaw-board-svg" role="img" aria-label="Puzzlefläche"></svg>
+                    </div>
+                </div>
+
+                <aside class="jigsaw-tray-column">
+                    <h2>Teile</h2>
+                    <p>Klicke ein Teil an. Bewege es mit der Maus. Klicke erneut, um es abzulegen.</p>
+
+                    <div id="jigsaw-piece-tray" class="jigsaw-piece-tray" aria-label="Puzzleteile"></div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="jigsaw.js"></script>
+</body>
+</html>
