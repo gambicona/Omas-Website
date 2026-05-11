@@ -20,17 +20,57 @@ const JIGSAW_PICTURE_CATEGORIES = {
     label: 'Landschaft',
     pictures: [
       {
-        id: 'landschaft-vorlage',
-        title: 'Vorlagenbild',
-        src: createTemplatePicture()
+        id: 'landschaft-unterwelt',
+        title: 'Magische Unterwelt',
+        src: 'images/jigsaw/Magische Unterwelt.png'
+      },
+      {
+        id: 'landschaft-glutburg',
+        title: 'Glutburg',
+        src: 'images/jigsaw/Glutburg.png'
+      },
+      {
+        id: 'landschaft-Himmelsland',
+        title: 'Himmelsland',
+        src: 'images/jigsaw/Himmelsland.png'
+      },
+      {
+        id: 'landschaft-Dschungeltempel',
+        title: 'Dschungeltempel',
+        src: 'images/jigsaw/Dschungeltempel.png'
+      },
+      {
+        id: 'landschaft-Wüstenoase',
+        title: 'Wüstenoase',
+        src: 'images/jigsaw/Wüstenoase.png'
+      },
+      {
+        id: 'landschaft-Herbstschloss',
+        title: 'Herbstschloss',
+        src: 'images/jigsaw/Herbstschloss.png'
+      },
+      {
+        id: 'landschaft-Frostburg',
+        title: 'Frostburg',
+        src: 'images/jigsaw/Frostburg.png'
+      },
+      {
+        id: 'landschaft-Pilzreich',
+        title: 'Pilzreich',
+        src: 'images/jigsaw/Pilzreich.png'
+      },
+      {
+        id: 'landschaft-BaldursTor',
+        title: 'Baldurs Tor',
+        src: 'images/jigsaw/Baldurs Tor.png'
+      },
+      {
+        id: 'landschaft-DieReise',
+        title: 'Die Reise',
+        src: 'images/jigsaw/Die Reise.png'
       }
 
-      // Later:
-      // {
-      //   id: 'landschaft-berge',
-      //   title: 'Berge',
-      //   src: 'images/jigsaw/landscape-01.jpg'
-      // }
+      
     ]
   },
 
@@ -104,12 +144,56 @@ const JIGSAW_PICTURE_CATEGORIES = {
   flowers: {
     label: 'Blumen',
     pictures: [
-      // Later:
-      // {
-      //   id: 'blume-rose',
-      //   title: 'Rose',
-      //   src: 'images/jigsaw/flowers-01.jpg'
-      // }
+      {
+        id: 'blumen-prachtscharte',
+        title: 'Prachtscharte',
+        src: 'images/jigsaw/Prachtscharte.png'
+      },
+      {
+        id: 'blumen-Spinnenblume',
+        title: 'Spinnenblume',
+        src: 'images/jigsaw/Spinnenblume.png'
+      },
+      {
+        id: 'blumen-Mädchenauge',
+        title: 'Mädchenauge',
+        src: 'images/jigsaw/Mädchenauge.png'
+      },
+      {
+        id: 'blumen-Schachbrettblume',
+        title: 'Schachbrettblume',
+        src: 'images/jigsaw/Schachbrettblume.png'
+      },
+      {
+        id: 'blumen-Fuchsschwanz-Amaranth',
+        title: 'Fuchsschwanz-Amaranth',
+        src: 'images/jigsaw/Fuchsschwanz-Amaranth.png'
+      },
+      {
+        id: 'blumen-Sterndolde',
+        title: 'Sterndolde',
+        src: 'images/jigsaw/Sterndolde.png'
+      },
+      {
+        id: 'blumen-Skabiose',
+        title: 'Skabiose',
+        src: 'images/jigsaw/Skabiose.png'
+      },
+      {
+        id: 'blumen-Schmuckkörbchen',
+        title: 'Schmuckkörbchen',
+        src: 'images/jigsaw/Schmuckkörbchen.png'
+      },
+      {
+        id: 'blumen-Akelei',
+        title: 'Akelei',
+        src: 'images/jigsaw/Akelei.png'
+      },
+      {
+        id: 'blumen-TränendesHerz',
+        title: 'Tränendes Herz',
+        src: 'images/jigsaw/TränendesHerz.png'
+      }
     ]
   },
 
@@ -137,12 +221,12 @@ const JIGSAW_PICTURE_CATEGORIES = {
   src: 'images/jigsaw/JarJar2.jpg'
 },
 {
-  id: 'foto-jarlar3',
+  id: 'foto-jarJar3',
   title: 'JarJar 3',
   src: 'images/jigsaw/JarJar3.jpg'
 },
 {
-  id: 'foto-jarlarjung',
+  id: 'foto-jarJarjung',
   title: 'JarJar jung',
   src: 'images/jigsaw/JarJarjung.jpg'
 },
@@ -152,7 +236,7 @@ const JIGSAW_PICTURE_CATEGORIES = {
   src: 'images/jigsaw/Julia Baby.jpg'
 },
 {
-  id: 'foto-julia-und-jarlar',
+  id: 'foto-julia-und-jarJar',
   title: 'Julia und JarJar',
   src: 'images/jigsaw/Julia und JarJar.jpg'
 },
