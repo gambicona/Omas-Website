@@ -8,12 +8,22 @@ const KIEL_WEATHER_URL =
   '&timezone=Europe%2FBerlin' +
   '&forecast_days=4';
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateClock();
-  setInterval(updateClock, 1000);
+let timeWeatherClockTimer = null;
 
+function initTimeWeatherPage() {
+  updateClock();
+  clearInterval(timeWeatherClockTimer);
+  timeWeatherClockTimer = setInterval(updateClock, 1000);
   loadWeather();
-});
+
+  window.cleanupOmasDynamicPage = function () {
+    clearInterval(timeWeatherClockTimer);
+    timeWeatherClockTimer = null;
+  };
+}
+
+window.initTimeWeatherPage = initTimeWeatherPage;
+document.addEventListener('DOMContentLoaded', initTimeWeatherPage);
 
 function updateClock() {
   const now = new Date();

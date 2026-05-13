@@ -4,6 +4,10 @@ const JIGSAW_JIGGINESS = 0.22;
 const JIGSAW_SNAP_GRACE = 0.6;
 let currentTrayOrder = [];
 
+const JIGSAW_STANDARD_SIZES = [9, 12, 16, 20, 24, 30, 36, 48];
+const JIGSAW_MORE_SIZES = [60, 80, 100, 120];
+let isJigsawMoreMenuOpen = false;
+
 const JIGSAW_SIZE_OPTIONS = {
   9: { cols: 3, rows: 3 },
   12: { cols: 4, rows: 3 },
@@ -12,7 +16,11 @@ const JIGSAW_SIZE_OPTIONS = {
   24: { cols: 6, rows: 4 },
   30: { cols: 6, rows: 5 },
   36: { cols: 6, rows: 6 },
-  48: { cols: 8, rows: 6 }
+  48: { cols: 8, rows: 6 },
+  60: { cols: 10, rows: 6 },
+  80: { cols: 10, rows: 8 },
+  100: { cols: 10, rows: 10 },
+  120: { cols: 12, rows: 10 }
 };
 
 const JIGSAW_PICTURE_CATEGORIES = {
@@ -279,7 +287,7 @@ let currentPlacedPieces = new Set();
 let currentCarryingPiece = null;
 let currentFloatingPieceElement = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initJigsawPage() {
   renderCategoryButtons();
   renderPictureButtons();
   renderSizeButtons();
@@ -290,9 +298,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateShadowVisibility();
   });
 
+  document.removeEventListener('pointermove', moveFloatingPiece);
+  document.removeEventListener('click', handleJigsawDrop);
   document.addEventListener('pointermove', moveFloatingPiece);
   document.addEventListener('click', handleJigsawDrop);
-});
+
+  window.cleanupOmasDynamicPage = function () {
+    stopCarryingPiece();
+    document.removeEventListener('pointermove', moveFloatingPiece);
+    document.removeEventListener('click', handleJigsawDrop);
+  };
+}
+
+window.initJigsawPage = initJigsawPage;
+document.addEventListener('DOMContentLoaded', initJigsawPage);
 
 function createTemplatePicture() {
   const svg = `
@@ -418,21 +437,56 @@ function renderSizeButtons() {
   const container = document.getElementById('jigsaw-size-buttons');
   container.innerHTML = '';
 
-  Object.keys(JIGSAW_SIZE_OPTIONS).forEach(pieceCount => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = pieceCount;
-    button.dataset.pieceCount = pieceCount;
-    button.classList.toggle('active', Number(pieceCount) === selectedPieceCount);
+  JIGSAW_STANDARD_SIZES.forEach(pieceCount => {
+    container.appendChild(createJigsawSizeButton(pieceCount));
+  });
 
-    button.addEventListener('click', () => {
-      selectedPieceCount = Number(pieceCount);
-      renderSizeButtons();
-      updateJigsawStatus(`${pieceCount} Teile ausgewÃ¤hlt.`);
+  const moreWrapper = document.createElement('div');
+  moreWrapper.className = 'jigsaw-more-size-wrapper';
+
+  const moreButton = document.createElement('button');
+  moreButton.type = 'button';
+  moreButton.textContent = 'Mehr';
+  moreButton.className = 'jigsaw-more-size-button';
+  moreButton.setAttribute('aria-haspopup', 'true');
+  moreButton.setAttribute('aria-expanded', String(isJigsawMoreMenuOpen));
+  moreButton.classList.toggle('active', JIGSAW_MORE_SIZES.includes(selectedPieceCount));
+  moreButton.addEventListener('click', () => {
+    isJigsawMoreMenuOpen = !isJigsawMoreMenuOpen;
+    renderSizeButtons();
+  });
+
+  moreWrapper.appendChild(moreButton);
+
+  if (isJigsawMoreMenuOpen) {
+    const moreMenu = document.createElement('div');
+    moreMenu.className = 'jigsaw-more-size-menu';
+
+    JIGSAW_MORE_SIZES.forEach(pieceCount => {
+      moreMenu.appendChild(createJigsawSizeButton(pieceCount));
     });
 
-    container.appendChild(button);
+    moreWrapper.appendChild(moreMenu);
+  }
+
+  container.appendChild(moreWrapper);
+}
+
+function createJigsawSizeButton(pieceCount) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = pieceCount;
+  button.dataset.pieceCount = pieceCount;
+  button.classList.toggle('active', Number(pieceCount) === selectedPieceCount);
+
+  button.addEventListener('click', () => {
+    selectedPieceCount = Number(pieceCount);
+    isJigsawMoreMenuOpen = false;
+    renderSizeButtons();
+    updateJigsawStatus(`${pieceCount} Teile ausgewählt.`);
   });
+
+  return button;
 }
 
 async function startJigsawGame() {
@@ -451,6 +505,7 @@ async function startJigsawGame() {
 
   currentImageSrc = picture.src;
   currentPlacedPieces = new Set();
+  document.getElementById('jigsaw-board-svg')?.classList.remove('completed');
 
   currentPuzzle = JigsawGenerator.generate({
     cols: grid.cols,
@@ -692,6 +747,7 @@ function placePiece(piece) {
   buildJigsawTray();
 
   if (currentPlacedPieces.size === currentPuzzle.pieces.length) {
+    document.getElementById('jigsaw-board-svg')?.classList.add('completed');
     updateJigsawStatus('Sehr gut! Das Puzzle ist fertig.');
     return;
   }

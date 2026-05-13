@@ -152,10 +152,14 @@ let moveCount = 0;
 let currentCardCount = 0;
 let currentMemorySet = 'flowers';
 
-document.addEventListener('DOMContentLoaded', () => {
+function initMemoryPage() {
   const sizeButtons = document.querySelectorAll('.memory-size-buttons button');
   const setButtons = document.querySelectorAll('.memory-set-buttons button');
   const newGameButton = document.getElementById('memory-new-game-button');
+
+  if (!sizeButtons.length || !setButtons.length || !newGameButton) {
+    return;
+  }
 
   setButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -170,15 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const setLabel = MEMORY_SETS[currentMemorySet].label;
 
-      // If a card number was already selected, keep it and start a new game
-      // with the newly selected motif.
       if (currentCardCount > 0) {
         startMemoryGame(currentCardCount);
         return;
       }
 
       clearMemoryBoard(false);
-      updateMemoryStatus(`${setLabel} ausgewÃ¤hlt. Bitte eine Kartenanzahl wÃ¤hlen.`);
+      updateMemoryStatus(`${setLabel} ausgewählt. Bitte eine Kartenanzahl wählen.`);
     });
   });
 
@@ -194,21 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
       startMemoryGame(currentCardCount);
     }
   });
-});
+}
 
-  sizeButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const cardCount = Number(button.dataset.cardCount);
-        startMemoryGame(cardCount);
-    });
-    });
-
-  newGameButton.addEventListener('click', () => {
-    if (currentCardCount > 0) {
-      startMemoryGame(currentCardCount);
-    }
-  });
-
+window.initMemoryPage = initMemoryPage;
+document.addEventListener('DOMContentLoaded', initMemoryPage);
 function startMemoryGame(cardCount) {
   const config = MEMORY_GRID_CONFIG[cardCount];
 

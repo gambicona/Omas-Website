@@ -1088,6 +1088,31 @@ nav button {
   background-color: var(--button-bg, #0066cc);
   color: var(--button-text, #ffffff);
 }
+.jigsaw-more-size-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.jigsaw-more-size-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-width: 100%;
+  padding: 10px;
+  background-color: var(--card-bg, #ffffff);
+  border: 2px solid var(--card-border, #cccccc);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.jigsaw-more-size-menu button {
+  width: 100%;
+  margin: 0;
+}
 
 .jigsaw-start-box {
   padding: 24px;
@@ -1207,6 +1232,10 @@ nav button {
   vector-effect: non-scaling-stroke;
 }
 
+.jigsaw-board-svg.completed .jigsaw-piece-outline {
+  display: none;
+}
+
 .jigsaw-piece-tray {
   max-height: 72vh;
   overflow-y: auto;
@@ -1277,4 +1306,89 @@ nav button {
   color: var(--text, #000080);
   text-align: center;
   width: 100%;
+}
+/* Floating music controls */
+.omas-floating-player {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 1200;
+  width: min(360px, calc(100vw - 36px));
+  background-color: var(--card-bg, #ffffff);
+  color: var(--text, #000080);
+  border: 3px solid var(--button-bg, #0066cc);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  padding: 14px;
+}
+
+.omas-floating-player[hidden] {
+  display: none !important;
+}
+
+.omas-floating-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.omas-floating-controls {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 0.8fr;
+  gap: 8px;
+}
+
+.omas-floating-controls button {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--button-bg, #0066cc);
+  color: var(--button-text, #ffffff);
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.omas-floating-controls button:hover,
+.omas-floating-controls button:focus {
+  background-color: var(--button-hover, #004d99);
+  outline: 3px solid #ffcc00;
+}
+
+.omas-floating-volume {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.omas-floating-volume input[type="range"] {
+  width: 100%;
+}
+
+.omas-background-youtube-player {
+  position: fixed;
+  left: -9999px;
+  bottom: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .omas-floating-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .omas-floating-volume {
+    grid-template-columns: 1fr;
+  }
 }

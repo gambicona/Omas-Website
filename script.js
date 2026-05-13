@@ -7,7 +7,125 @@ let currentPlaylistTitle = '';
 let currentVideoId = null;
 let videoTitleCache = {};
 let playlistTitleCache = {};
+let isLoop = false;
+let pendingPlayerRestore = false;
+let playerStateTimer = null;
 const singleLoopMessage = 'Sie haben Einzelwiedergabe ausgewählt. Klicken Sie einmal auf Playlist im Menu unter dem Video.';
+function getCurrentPlaybackState(extra = {}) {
+  if (!player || typeof player.getVideoData !== 'function') {
+    return null;
+  }
+
+  const data = player.getVideoData() || {};
+  const savedState = typeof window.readOmasPlayerState === 'function' ? window.readOmasPlayerState() : null;
+  const playerState = player.getPlayerState ? player.getPlayerState() : null;
+  let isCurrentlyPlaying = savedState ? savedState.playing !== false : true;
+
+  if (window.YT && YT.PlayerState) {
+    if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING) {
+      isCurrentlyPlaying = true;
+    } else if (playerState === YT.PlayerState.PAUSED || playerState === YT.PlayerState.ENDED) {
+      isCurrentlyPlaying = false;
+    }
+  }
+  return {
+    mode: currentListId && !isLoop ? 'playlist' : 'video',
+    listId: currentListId,
+    playlistTitle: currentPlaylistTitle,
+    videoId: data.video_id || currentVideoId,
+    title: data.title || currentPlaylistTitle || 'Musik laeuft',
+    currentTime: player.getCurrentTime ? player.getCurrentTime() : 0,
+    volume: player.getVolume ? player.getVolume() : parseInt(document.getElementById('volume-slider')?.value || '5', 10),
+    playlistIndex: player.getPlaylistIndex ? player.getPlaylistIndex() : 0,
+    isLoop,
+    playing: isCurrentlyPlaying,
+    ...extra
+  };
+}
+
+function persistCurrentPlayback(extra = {}) {
+  const state = getCurrentPlaybackState(extra);
+  if (state && state.videoId && typeof window.writeOmasPlayerState === 'function') {
+    window.writeOmasPlayerState(state);
+  }
+}
+
+function persistPlaybackBeforePageChange() {
+  const savedState = typeof window.readOmasPlayerState === 'function' ? window.readOmasPlayerState() : null;
+  persistCurrentPlayback({
+    playing: savedState ? savedState.playing !== false : true
+  });
+}
+
+function shouldRestoreSavedPlayer() {
+  return Boolean(typeof window.readOmasPlayerState === 'function' && window.readOmasPlayerState());
+}
+
+function restoreVisiblePlayerFromSavedState() {
+  const state = typeof window.readOmasPlayerState === 'function' ? window.readOmasPlayerState() : null;
+  if (!state || player) return;
+  if (!window.YT || !window.YT.Player) {
+    pendingPlayerRestore = true;
+    return;
+  }
+
+  currentListId = state.listId || null;
+  currentPlaylistTitle = state.playlistTitle || '';
+  currentVideoId = state.videoId || null;
+  isLoop = Boolean(state.isLoop || !state.listId);
+
+  const volumeSlider = document.getElementById('volume-slider');
+  if (volumeSlider && Number.isFinite(state.volume)) {
+    volumeSlider.value = String(state.volume);
+  }
+
+  const playerSection = document.getElementById('player-section');
+  if (playerSection) {
+    playerSection.style.display = 'flex';
+  }
+
+  const playerConfig = {
+    height: '400',
+    width: '100%',
+    events: {
+      onStateChange: onPlayerStateChange,
+      onReady: (event) => {
+        onPlayerReady(event);
+        const volume = Number.isFinite(state.volume) ? state.volume : 5;
+        player.setVolume(volume);
+
+        if (state.listId && !isLoop) {
+          player.loadPlaylist({
+            list: state.listId,
+            listType: 'playlist',
+            index: state.playlistIndex || 0,
+            startSeconds: Math.max(0, Math.floor(state.currentTime || 0))
+          });
+        } else if (state.videoId) {
+          player.loadVideoById({
+            videoId: state.videoId,
+            startSeconds: Math.max(0, Math.floor(state.currentTime || 0))
+          });
+        }
+
+        if (state.playing === false) {
+          setTimeout(() => player.pauseVideo(), 300);
+        } else {
+          setTimeout(() => {
+            if (player && typeof player.playVideo === 'function') {
+              player.playVideo();
+              persistCurrentPlayback({ playing: true });
+            }
+          }, 500);
+        }
+      }
+    }
+  };
+
+  player = new YT.Player('video-iframe', playerConfig);
+  updateToggleButtons();
+  updatePlaylistMenu();
+}
 
 // Load favorites from localStorage
 function loadFavorites() {
@@ -237,6 +355,7 @@ async function playPlaylist(listId) {
   if (player) {
     player.loadPlaylist({list: listId, listType: 'playlist', autoplay: 1});
     player.setVolume(parseInt(document.getElementById('volume-slider').value));
+    persistCurrentPlayback({ playing: true });
     updatePlaylistMenu();
     const playlistBtn = document.getElementById('playlist-btn');
     if (playlistBtn) {
@@ -276,6 +395,7 @@ function playVideo(videoId) {
   if (player) {
     player.loadVideoById(videoId);
     player.setVolume(parseInt(document.getElementById('volume-slider').value));
+    persistCurrentPlayback({ playing: true });
     updatePlaylistMenu();
   } else {
     player = new YT.Player('video-iframe', {
@@ -299,13 +419,16 @@ function playVideo(videoId) {
 // Player ready
 function onPlayerReady(event) {
   // Player is ready
-  player.setVolume(5); // Set initial volume to 5%
+  const savedState = typeof window.readOmasPlayerState === 'function' ? window.readOmasPlayerState() : null;
+  const savedVolume = savedState && Number.isFinite(savedState.volume) ? savedState.volume : 5;
+  player.setVolume(savedVolume); // Set initial volume to 5%
 
   const volumeSlider = document.getElementById('volume-slider');
   if (volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
       if (player && typeof player.setVolume === 'function') {
         player.setVolume(parseInt(e.target.value));
+        persistCurrentPlayback();
       }
     });
   }
@@ -329,6 +452,14 @@ function onPlayerStateChange(event) {
     currentVideoId = player.getVideoData().video_id;
     updateFavoriteButton();
     updatePlaylistMenu();
+    persistCurrentPlayback({ playing: true });
+  }
+  if (event.data == YT.PlayerState.PAUSED) {
+    if (document.visibilityState === 'hidden') {
+      persistPlaybackBeforePageChange();
+      return;
+    }
+    persistCurrentPlayback({ playing: false });
   }
 }
 
@@ -342,6 +473,7 @@ function toggleSingleVideo() {
       suggestedQuality: 'large'
     });
     player.setLoop(true);
+    persistCurrentPlayback({ playing: true });
   }
   updateToggleButtons();
 }
@@ -352,6 +484,7 @@ function togglePlaylist() {
   if (currentListId && player) {
     player.loadPlaylist({list: currentListId, listType: 'playlist'});
     updatePlaylistMenu();
+    persistCurrentPlayback({ playing: true });
   }
   updateToggleButtons();
 }
@@ -369,11 +502,78 @@ function updateToggleButtons() {
 // Close player
 function closePlayer() {
   const playerSection = document.getElementById('player-section');
-  if (player) {
+  persistCurrentPlayback();
+  if (playerSection) {
+    playerSection.style.display = 'none';
+  }
+  if (typeof window.updateOmasFloatingPlayer === 'function') {
+    window.updateOmasFloatingPlayer();
+  }
+}
+
+function stopPlaybackFromMiniPlayer() {
+  if (player && typeof player.stopVideo === 'function') {
     player.stopVideo();
   }
-  playerSection.style.display = 'none';
+  if (typeof window.clearOmasPlayerState === 'function') {
+    window.clearOmasPlayerState();
+  }
+  if (typeof window.updateOmasFloatingPlayer === 'function') {
+    window.updateOmasFloatingPlayer();
+  }
 }
+
+function setupPlayerOverlayClose() {
+  const playerSection = document.getElementById('player-section');
+  if (!playerSection) return;
+
+  playerSection.addEventListener('click', (event) => {
+    if (event.target === playerSection) {
+      closePlayer();
+    }
+  });
+}
+
+window.showOmasFullPlayer = function () {
+  const playerSection = document.getElementById('player-section');
+  if (playerSection) {
+    playerSection.style.display = 'flex';
+  }
+  if (typeof window.updateOmasFloatingPlayer === 'function') {
+    window.updateOmasFloatingPlayer();
+  }
+};
+
+window.omasVisiblePlayerCommand = function (command, value) {
+  const playerSection = document.getElementById('player-section');
+  const hasVisiblePagePlayer = Boolean(player && playerSection);
+  if (!hasVisiblePagePlayer) return false;
+
+  if (command === 'pause') {
+    const state = player.getPlayerState ? player.getPlayerState() : null;
+    if (window.YT && state === YT.PlayerState.PLAYING) {
+      player.pauseVideo();
+      persistCurrentPlayback({ playing: false });
+    } else {
+      player.playVideo();
+      persistCurrentPlayback({ playing: true });
+    }
+    return true;
+  }
+
+  if (command === 'stop') {
+    stopPlaybackFromMiniPlayer();
+    return true;
+  }
+
+  if (command === 'volume') {
+    player.setVolume(value);
+    persistCurrentPlayback({ volume: value });
+    return true;
+  }
+
+  return false;
+};
 
 // Switch section
 function switchSection(section) {
@@ -393,11 +593,27 @@ function switchSection(section) {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+function initOmasVideosPage() {
+  if (!document.getElementById('playlists-section')) return;
   switchSection('playlists');
-});
+  setupPlayerOverlayClose();
+  if (shouldRestoreSavedPlayer()) {
+    restoreVisiblePlayerFromSavedState();
+  }
+  clearInterval(playerStateTimer);
+  playerStateTimer = setInterval(() => persistCurrentPlayback(), 3000);
+  window.addEventListener('pagehide', persistPlaybackBeforePageChange);
+  window.addEventListener('beforeunload', persistPlaybackBeforePageChange);
+}
+
+window.initOmasVideosPage = initOmasVideosPage;
+
+document.addEventListener('DOMContentLoaded', initOmasVideosPage);
 
 // YouTube API ready
 function onYouTubeIframeAPIReady() {
-  // Player will be created when needed
+  if (pendingPlayerRestore) {
+    pendingPlayerRestore = false;
+    restoreVisiblePlayerFromSavedState();
+  }
 }
