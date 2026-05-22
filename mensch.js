@@ -17,6 +17,8 @@ const MENSCH_HOME = {
   rot: [[9,5],[8,5],[7,5],[6,5]],
   blau: [[1,5],[2,5],[3,5],[4,5]]
 };
+const MENSCH_HOME_START = 40;
+const MENSCH_HOME_END = 43;
 
 let menschState = null;
 let menschBotTimer = null;
@@ -69,6 +71,9 @@ function loadMenschState() {
       state.pieces.rot[0] = 0;
       state.pieces.blau[0] = 0;
     }
+    sanitizeMenschHomeState(state);
+    if (state.pieces.rot.every(steps => steps >= MENSCH_HOME_START)) state.winner = MENSCH_HUMAN;
+    if (state.pieces.blau.every(steps => steps >= MENSCH_HOME_START)) state.winner = MENSCH_BOT;
     menschAnimating = false;
     return state;
   } catch (error) {
@@ -248,7 +253,7 @@ function scoreMenschMove(player, index) {
   if (current === -1 && menschState.dice === 6) score += 20;
   const hit = getMenschOpponentAtTarget(player, target);
   if (hit) score += 30;
-  if (target === 44) score += 15;
+  if (target >= MENSCH_HOME_START) score += 15 + target - MENSCH_HOME_START;
   return score;
 }
 
@@ -273,11 +278,12 @@ function getLegalMenschMoves(player) {
 function isMenschMoveLegal(player, index) {
   if (!menschState.dice || menschState.winner) return false;
   const current = menschState.pieces[player][index];
-  if (current === 44) return false;
+  if (current === MENSCH_HOME_END) return false;
   if (current === -1 && menschState.dice !== 6) return false;
   const target = getMenschTargetSteps(current);
-  if (target > 44) return false;
-  return !isMenschOwnPieceAt(player, target);
+  if (target > MENSCH_HOME_END) return false;
+  if (isMenschOwnPieceAt(player, target)) return false;
+  return isMenschHomePathClear(player, index, current, target);
 }
 
 function getMenschTargetSteps(current) {
@@ -285,10 +291,24 @@ function getMenschTargetSteps(current) {
   return current + menschState.dice;
 }
 
+function isMenschHomePathClear(player, movingIndex, current, target) {
+  if (target < MENSCH_HOME_START) return true;
+  const firstHomeStep = Math.max(MENSCH_HOME_START, current + 1);
+
+  for (let step = firstHomeStep; step <= target; step++) {
+    const blocked = menschState.pieces[player].some((pieceSteps, index) => (
+      index !== movingIndex && pieceSteps === step
+    ));
+    if (blocked) return false;
+  }
+
+  return true;
+}
+
 function getMenschPieceCell(player, index) {
   const steps = menschState.pieces[player][index];
   if (steps === -1) return MENSCH_YARDS[player][index];
-  if (steps >= 40) return MENSCH_HOME[player][Math.min(3, steps - 40)];
+  if (steps >= MENSCH_HOME_START) return MENSCH_HOME[player][steps - MENSCH_HOME_START];
   return getMenschTrackCell(player, steps);
 }
 
@@ -297,8 +317,36 @@ function getMenschTrackCell(player, steps) {
   return MENSCH_PATH[absoluteIndex];
 }
 
+function sanitizeMenschHomeState(state) {
+  [MENSCH_HUMAN, MENSCH_BOT].forEach(player => {
+    const usedHomeSteps = new Set();
+
+    state.pieces[player] = state.pieces[player].map(steps => {
+      if (steps > MENSCH_HOME_END) return MENSCH_HOME_END;
+      return steps;
+    });
+
+    state.pieces[player] = state.pieces[player].map(steps => {
+      if (steps < MENSCH_HOME_START) return steps;
+      if (!usedHomeSteps.has(steps)) {
+        usedHomeSteps.add(steps);
+        return steps;
+      }
+
+      for (let homeStep = MENSCH_HOME_START; homeStep <= MENSCH_HOME_END; homeStep++) {
+        if (!usedHomeSteps.has(homeStep)) {
+          usedHomeSteps.add(homeStep);
+          return homeStep;
+        }
+      }
+
+      return steps;
+    });
+  });
+}
+
 function isMenschOwnPieceAt(player, targetSteps) {
-  return menschState.pieces[player].some(steps => steps === targetSteps && steps !== -1 && steps !== 44);
+  return menschState.pieces[player].some(steps => steps === targetSteps && steps !== -1);
 }
 
 function getMenschOpponentAtTarget(player, targetSteps) {
@@ -320,8 +368,8 @@ function getMenschOpponentAtTarget(player, targetSteps) {
 }
 
 function checkMenschWinner() {
-  if (menschState.pieces.rot.every(steps => steps === 44)) menschState.winner = MENSCH_HUMAN;
-  if (menschState.pieces.blau.every(steps => steps === 44)) menschState.winner = MENSCH_BOT;
+  if (menschState.pieces.rot.every(steps => steps >= MENSCH_HOME_START)) menschState.winner = MENSCH_HUMAN;
+  if (menschState.pieces.blau.every(steps => steps >= MENSCH_HOME_START)) menschState.winner = MENSCH_BOT;
   if (!menschState.winner) return false;
   menschState.botThinking = false;
   saveMenschState();
@@ -385,8 +433,8 @@ function getMenschAnimationCells(player, index) {
     cells.push(getMenschTrackCell(player, step));
   }
 
-  for (let step = Math.max(40, current + 1); step <= Math.min(44, target); step++) {
-    cells.push(MENSCH_HOME[player][Math.min(3, step - 40)]);
+  for (let step = Math.max(MENSCH_HOME_START, current + 1); step <= Math.min(MENSCH_HOME_END, target); step++) {
+    cells.push(MENSCH_HOME[player][step - MENSCH_HOME_START]);
   }
 
   return cells;
@@ -420,8 +468,8 @@ function updateMenschStats() {
   const botHome = document.getElementById('mensch-bot-home');
   const rollButton = document.getElementById('mensch-roll-button');
   if (dice) dice.textContent = menschState.dice || '-';
-  if (humanHome) humanHome.textContent = String(menschState.pieces.rot.filter(steps => steps === 44).length);
-  if (botHome) botHome.textContent = String(menschState.pieces.blau.filter(steps => steps === 44).length);
+  if (humanHome) humanHome.textContent = String(menschState.pieces.rot.filter(steps => steps >= MENSCH_HOME_START).length);
+  if (botHome) botHome.textContent = String(menschState.pieces.blau.filter(steps => steps >= MENSCH_HOME_START).length);
   if (rollButton) rollButton.disabled = isMenschBusy() || Boolean(menschState.dice) || Boolean(menschState.winner);
 }
 
@@ -429,7 +477,7 @@ function updateMenschStatus(message) {
   const status = document.getElementById('mensch-status');
   const log = document.getElementById('mensch-log');
   if (!status) return;
-  const text = message || (isMenschBotTurn() ? 'Der Computer ist dran.' : 'Bitte würfeln.');
+  const text = message || getMenschDefaultStatusText();
   status.textContent = text;
 
   if (menschState && message) {
@@ -445,4 +493,10 @@ function updateMenschStatus(message) {
       log.appendChild(entry);
     });
   }
+}
+
+function getMenschDefaultStatusText() {
+  if (menschState?.winner === MENSCH_HUMAN) return 'Du hast gewonnen!';
+  if (menschState?.winner === MENSCH_BOT) return 'Der Computer hat gewonnen.';
+  return isMenschBotTurn() ? 'Der Computer ist dran.' : 'Bitte würfeln.';
 }
