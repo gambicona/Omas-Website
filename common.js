@@ -28,6 +28,7 @@ function getThemeLabel(theme) {
 function applyTheme(theme) {
   const selected = VALID_THEMES.includes(theme) ? theme : 'standard';
 
+  if (!document.body) return;
   document.body.dataset.theme = selected;
   localStorage.setItem('omasTheme', selected);
 
@@ -86,6 +87,8 @@ function loadTheme() {
   const savedTheme = localStorage.getItem('omasTheme') || 'standard';
   applyTheme(savedTheme);
 }
+
+loadTheme();
 
 function createEasyCursor() {
   if (document.getElementById('custom-cursor')) {
@@ -448,6 +451,12 @@ const OMAS_DYNAMIC_PAGE_SCRIPTS = {
   'games.html': [],
   'memory.html': ['memory.js'],
   'jigsaw.html': ['jigsaw.js'],
+  'halma.html': ['halma.js'],
+  'dame.html': ['dame.js'],
+  'muehle.html': ['muehle.js'],
+  'mensch.html': ['mensch.js'],
+  'kniffel.html': ['kniffel.js'],
+  'solitaer.html': ['solitaer.js'],
   'time-weather.html': ['time-weather.js']
 };
 
@@ -455,6 +464,12 @@ const OMAS_DYNAMIC_PAGE_INITIALIZERS = {
   'index.html': 'initOmasVideosPage',
   'memory.html': 'initMemoryPage',
   'jigsaw.html': 'initJigsawPage',
+  'halma.html': 'initHalmaPage',
+  'dame.html': 'initDamePage',
+  'muehle.html': 'initMuehlePage',
+  'mensch.html': 'initMenschPage',
+  'kniffel.html': 'initKniffelPage',
+  'solitaer.html': 'initSolitaerPage',
   'time-weather.html': 'initTimeWeatherPage'
 };
 
@@ -511,12 +526,13 @@ async function initializeOmasDynamicPage(pageName) {
     await loadOmasDynamicScript(scriptSrc);
   }
 
+  loadTheme();
+
   const initializerName = OMAS_DYNAMIC_PAGE_INITIALIZERS[pageName];
   if (initializerName && typeof window[initializerName] === 'function') {
     window[initializerName]();
   }
 
-  loadTheme();
   ensureOmasFloatingPlayer();
   updateOmasFloatingPlayer();
   window.scrollTo({ top: 0, left: 0 });

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halma - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Halma</h1>
+
+                <nav>
+                    <button onclick="window.location.href='games.html'" aria-label="Zurück zu den Spielen">
+                        Zurück zu den Spielen
+                    </button>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="halma-section">
+            <div class="welcome">
+                <h2>Halma solo</h2>
+                <p>Klicke eine rote Figur an. Gleiche Figur zählt weiter, neue Figur zählt als neuer Zug.</p>
+            </div>
+
+            <div class="halma-play-layout">
+                <aside class="halma-side-panel" aria-label="Halma Einstellungen">
+                    <div class="halma-choice-group">
+                        <h2>Spielart</h2>
+                        <div id="halma-mode-buttons" class="halma-option-buttons" aria-label="Spielart auswählen"></div>
+                    </div>
+
+                    <div id="halma-color-choice" class="halma-choice-group" hidden>
+                        <h2>Farben</h2>
+                        <div id="halma-color-buttons" class="halma-option-buttons" aria-label="Farben auswählen"></div>
+                    </div>
+
+                    <div class="halma-choice-group">
+                        <h2>Brett</h2>
+                        <div id="halma-shape-buttons" class="halma-option-buttons" aria-label="Brettform auswählen"></div>
+                    </div>
+
+                    <div class="halma-controls">
+                        <button id="halma-new-game-button" type="button">Neues Spiel</button>
+                        <button id="halma-end-turn-button" type="button" hidden>Zug beenden</button>
+                    </div>
+
+                    <div class="halma-stats" aria-label="Spielstand">
+                        <p>Züge: <strong id="halma-move-count">0</strong></p>
+                        <p>Rekord: <strong id="halma-record">-</strong></p>
+                    </div>
+
+                    <p id="halma-status" class="halma-status" aria-live="polite"></p>
+                </aside>
+
+                <div class="halma-board-wrap">
+                    <div id="halma-board" class="halma-board" aria-label="Halma-Spielfeld"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="halma.js"></script>
+</body>
+</html>

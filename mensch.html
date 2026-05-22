@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensch ärgere dich nicht - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Mensch ärgere dich nicht</h1>
+
+                <nav>
+                    <button onclick="window.location.href='games.html'" aria-label="Zurück zu den Spielen">
+                        Zurück zu den Spielen
+                    </button>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="board-game-section">
+            <div class="welcome">
+                <h2>Mensch ärgere dich nicht</h2>
+                <p>Du bist Rot. Würfle und klicke dann eine rote Figur an.</p>
+            </div>
+
+            <div class="board-game-layout">
+                <aside class="board-game-panel" aria-label="Mensch ärgere dich nicht Steuerung">
+                    <div class="mensch-button-box mensch-button-box-primary">
+                        <button id="mensch-roll-button" type="button">Würfeln</button>
+                    </div>
+
+                    <div class="mensch-button-box">
+                        <button id="mensch-new-game-button" type="button">Neues Spiel</button>
+                    </div>
+
+                    <div class="board-game-stats">
+                        <p>Würfel: <strong id="mensch-dice">-</strong></p>
+                        <p>Dein Ziel: <strong id="mensch-human-home">0</strong>/4</p>
+                        <p>Computer: <strong id="mensch-bot-home">0</strong>/4</p>
+                    </div>
+
+                    <p id="mensch-status" class="board-game-status" aria-live="polite"></p>
+                    <div class="mensch-log" aria-label="Letzte Meldungen">
+                        <h3>Letzte Meldungen</h3>
+                        <div id="mensch-log"></div>
+                    </div>
+                </aside>
+
+                <div id="mensch-board" class="mensch-board" aria-label="Mensch ärgere dich nicht Spielfeld"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="mensch.js"></script>
+</body>
+</html>

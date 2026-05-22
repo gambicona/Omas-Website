@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitär - Omas Videos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-button" onclick="toggleThemeMenu()" aria-haspopup="true" aria-expanded="false">
+                    Farbschema
+                </button>
+
+                <div id="theme-menu" class="theme-menu" hidden>
+                    <button type="button" onclick="setTheme('standard')">Standard Weiß</button>
+                    <button type="button" onclick="setTheme('dark')">Dunkel</button>
+                    <button type="button" onclick="setTheme('bright')">Hell</button>
+                    <button type="button" onclick="setTheme('highcontrast')">Hoher Kontrast</button>
+                    <button type="button" onclick="setTheme('pastell')">Pastell</button>
+                    <button type="button" onclick="setTheme('ocean')">Ozean</button>
+                    <button type="button" onclick="setTheme('forest')">Wald</button>
+                    <button type="button" onclick="setTheme('retro')">Retro</button>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <h1>Solitär</h1>
+
+                <nav>
+                    <button onclick="window.location.href='games.html'" aria-label="Zurück zu den Spielen">
+                        Zurück zu den Spielen
+                    </button>
+                    <button onclick="window.location.href='index.html'" aria-label="Zurück zu den Videos">
+                        Zurück zu den Videos
+                    </button>
+                </nav>
+            </div>
+
+            <div class="scroll-hint" aria-label="Runterscrollen um alles zu sehen">
+                Runterscrollen um alles zu sehen <span class="scroll-arrow">↓</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="board-game-section">
+            <div class="welcome">
+                <h2>Murmel-Solitär</h2>
+                <p>Springe mit einer Murmel über eine andere Murmel in ein freies Loch. Die übersprungene Murmel verschwindet.</p>
+            </div>
+
+            <div class="board-game-layout">
+                <aside class="board-game-panel" aria-label="Solitär Steuerung">
+                    <div class="board-game-button-box board-game-button-box-primary">
+                        <button id="solitaer-new-game-button" type="button">Neues Spiel</button>
+                    </div>
+                    <div class="board-game-button-box">
+                        <button id="solitaer-undo-button" type="button">Zug zurück</button>
+                    </div>
+                    <div class="halma-choice-group">
+                        <h2>Brett</h2>
+                        <div id="solitaer-shape-buttons" class="halma-option-buttons"></div>
+                    </div>
+                    <div class="board-game-stats">
+                        <p>Züge: <strong id="solitaer-move-count">0</strong></p>
+                        <p>Murmeln: <strong id="solitaer-marble-count">32</strong></p>
+                    </div>
+                    <p id="solitaer-status" class="board-game-status" aria-live="polite"></p>
+                </aside>
+
+                <div class="solitaer-board-wrap">
+                    <p id="solitaer-step-hint" class="solitaer-step-hint"></p>
+                    <div id="solitaer-board" class="solitaer-board" aria-label="Solitär Brett"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="common.js"></script>
+    <script src="solitaer.js"></script>
+</body>
+</html>
